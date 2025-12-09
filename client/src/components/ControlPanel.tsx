@@ -3,6 +3,7 @@ import { Play, Square, RotateCcw, AlertOctagon, Power } from 'lucide-react';
 import { useDrillStore } from '../store/useDrillStore';
 import { Card, Button, cn } from './ui/design-system';
 import { motion } from 'framer-motion';
+import { AnimatedNumber } from './ui/AnimatedNumber';
 
 interface ControlPanelProps {
   className?: string;
@@ -62,7 +63,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
               <label className="text-gray-400 font-medium">Rotary Speed Target</label>
-              <span className="text-primary font-mono font-bold">{data?.sensors.rpm.toFixed(0)} <span className="text-gray-500 text-xs">RPM</span></span>
+              <div className="flex items-baseline gap-1 font-mono font-bold text-primary">
+                <AnimatedNumber value={data?.sensors.rpm || 0} toFixed={0} />
+                <span className="text-gray-500 text-xs">RPM</span>
+              </div>
             </div>
             <div className="relative h-6 flex items-center">
               <input
@@ -85,7 +89,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
               <label className="text-gray-400 font-medium">Feed Pressure Force</label>
-              <span className="text-primary font-mono font-bold">{data?.sensors.pressure ? (data.sensors.pressure / 30).toFixed(1) : 0} <span className="text-gray-500 text-xs">LEVEL</span></span>
+              <div className="flex items-baseline gap-1 font-mono font-bold text-primary">
+                <AnimatedNumber value={data?.sensors.pressure ? data.sensors.pressure / 30 : 0} toFixed={1} />
+                <span className="text-gray-500 text-xs">LEVEL</span>
+              </div>
             </div>
              <div className="relative h-6 flex items-center">
                 <input

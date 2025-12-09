@@ -31,3 +31,34 @@ export interface DrillState {
   sendCommand: (command: string, value?: number) => void;
 }
 
+export interface HealthVitals {
+  pulseRate: number;
+  heartRate: number;
+  spO2: number;
+  bloodPressure: number;
+  temperature: number;
+  respirationRate: number;
+}
+
+export interface FaceDetection {
+  faceDetected: boolean;
+  eyesOpen: boolean;
+  cameraActive: boolean;
+}
+
+export interface HealthAlert {
+  id: string;
+  type: 'warning' | 'critical';
+  message: string;
+  timestamp: number;
+}
+
+export interface HealthData {
+  workerId: string;
+  timestamp: number;
+  status: 'Normal' | 'Warning' | 'Critical';
+  vitals: HealthVitals;
+  faceDetection: FaceDetection;
+  alerts: HealthAlert[];
+}
+

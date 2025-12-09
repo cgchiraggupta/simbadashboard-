@@ -2,6 +2,7 @@ import React from 'react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { DrillData } from '../types';
 import { Card, cn } from './ui/design-system';
+import { AnimatedNumber } from './ui/AnimatedNumber';
 
 interface ChartsProps {
   history: DrillData[];
@@ -154,8 +155,10 @@ export const PressureGauge: React.FC<{ value: number; className?: string }> = ({
           </div>
        </div>
        <div className="mt-[-10px] text-center relative z-10">
-          <span className="text-3xl font-mono font-bold text-white tracking-tight">{value.toFixed(0)}</span>
-          <span className="text-gray-500 ml-1 text-sm font-medium">N</span>
+          <div className="text-3xl font-mono font-bold text-white tracking-tight flex items-baseline justify-center">
+            <AnimatedNumber value={value} toFixed={0} />
+            <span className="text-gray-500 ml-1 text-sm font-medium">N</span>
+          </div>
        </div>
     </Card>
   );

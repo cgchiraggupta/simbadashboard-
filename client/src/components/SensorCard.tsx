@@ -3,6 +3,7 @@ import { LineChart, Line, ResponsiveContainer, YAxis, AreaChart, Area } from 're
 import type { LucideIcon } from 'lucide-react';
 import { Card, cn } from './ui/design-system';
 import { motion, type HTMLMotionProps } from 'framer-motion';
+import { AnimatedNumber } from './ui/AnimatedNumber';
 
 interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   title: string;
@@ -64,15 +65,11 @@ export const SensorCard: React.FC<SensorCardProps> = ({
       </div>
       
       <div className="flex items-baseline gap-2 mb-4">
-        <motion.span 
-          key={Math.floor(value)} // Animate on integer change
-          initial={{ scale: 1.1, color: '#fff' }}
-          animate={{ scale: 1, color: value >= thresholds.warning ? strokeColor : '#fff' }}
-          className={cn("text-4xl font-mono font-bold tracking-tight")}
-          style={{ textShadow: value >= thresholds.warning ? `0 0 20px ${strokeColor}` : 'none' }}
-        >
-          {value.toFixed(1)}
-        </motion.span>
+        <AnimatedNumber
+          value={value}
+          toFixed={1}
+          className={cn("text-4xl font-mono font-bold tracking-tight", value >= thresholds.warning ? statusColor : "text-white")}
+        />
         <span className="text-gray-500 font-medium">{unit}</span>
       </div>
 
@@ -91,8 +88,9 @@ export const SensorCard: React.FC<SensorCardProps> = ({
               dataKey="value" 
               stroke={strokeColor} 
               fill={`url(#gradient-${title})`}
-              strokeWidth={2} 
-              isAnimationActive={false}
+              strokeWidth={2}
+              isAnimationActive={true}
+              animationDuration={500}
             />
           </AreaChart>
         </ResponsiveContainer>
