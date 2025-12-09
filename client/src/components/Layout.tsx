@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BarChart2, Settings, Info, Menu, Zap } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Settings, Info, Menu, Zap, HeartPulse } from 'lucide-react';
 import { cn } from './ui/design-system';
 
 interface LayoutProps {
@@ -83,6 +83,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           <NavItem icon={LayoutDashboard} label="Dashboard" to="/" sidebarOpen={sidebarOpen} />
+          <NavItem icon={HeartPulse} label="Health Monitor" to="/health" sidebarOpen={sidebarOpen} />
           <NavItem icon={BarChart2} label="Analytics" to="/analytics" sidebarOpen={sidebarOpen} />
           <NavItem icon={Settings} label="Settings" to="/settings" sidebarOpen={sidebarOpen} />
           <NavItem icon={Info} label="About" to="/about" sidebarOpen={sidebarOpen} />
