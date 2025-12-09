@@ -69,25 +69,7 @@ export const useHealthStore = create<{
 }>((set, get) => {
   // Initialize with mock data for development
   const initialData = generateMockHealthData();
-  
-  // Store for interval reference
-  let mockInterval: NodeJS.Timeout | null = null;
-  
-  // Start mock data updates after store is created
-  setTimeout(() => {
-    mockInterval = setInterval(() => {
-      const newData = generateMockHealthData();
-      set((state) => {
-        const newHistory = [...(state.history || []), newData].slice(-MAX_HISTORY);
-        return {
-          healthData: newData,
-          history: newHistory
-        };
-      });
-    }, 2000);
-    (get() as any).mockInterval = mockInterval;
-  }, 0);
-  
+
   return {
     healthData: initialData,
     history: [initialData],
@@ -97,6 +79,21 @@ export const useHealthStore = create<{
     connect: () => {
       if (get().isConnected) return;
 
+      // Start mock data updates if not already started
+      if (!(get() as any).mockInterval) {
+        const interval = setInterval(() => {
+          const newData = generateMockHealthData();
+          set((state) => {
+            const newHistory = [...(state.history || []), newData].slice(-MAX_HISTORY);
+            return {
+              healthData: newData,
+              history: newHistory
+            };
+          });
+        }, 2000);
+        (get() as any).mockInterval = interval;
+      }
+
       const tryConnect = () => {
         try {
           const ws = new WebSocket('ws://localhost:3002');
@@ -104,33 +101,12 @@ export const useHealthStore = create<{
           ws.onopen = () => {
             console.log('Connected to Health Monitoring System');
             set({ isConnected: true });
-            // Stop mock data when real connection is established
-            const mockInterval = (get() as any).mockInterval;
-            if (mockInterval) {
-              clearInterval(mockInterval);
-              (get() as any).mockInterval = null;
-            }
           };
 
           ws.onclose = () => {
             console.log('Disconnected from Health Monitoring System');
             set({ isConnected: false });
-            
-            // Ensure mock data continues
-            if (!(get() as any).mockInterval) {
-              const interval = setInterval(() => {
-                const newData = generateMockHealthData();
-                set((state) => {
-                  const newHistory = [...(state.history || []), newData].slice(-MAX_HISTORY);
-                  return {
-                    healthData: newData,
-                    history: newHistory
-                  };
-                });
-              }, 2000);
-              (get() as any).mockInterval = interval;
-            }
-            
+
             // Retry connection after 5 seconds
             setTimeout(() => {
               if (!get().isConnected) {
@@ -151,12 +127,6 @@ export const useHealthStore = create<{
                     history: newHistory
                   };
                 });
-                // Stop mock data when real data arrives
-                const mockInterval = (get() as any).mockInterval;
-                if (mockInterval) {
-                  clearInterval(mockInterval);
-                  (get() as any).mockInterval = null;
-                }
               }
             } catch (e) {
               console.error('Failed to parse message', e);
@@ -164,52 +134,50 @@ export const useHealthStore = create<{
           };
 
           ws.onerror = () => {
-            // Mock data already running, just log
             console.log('WebSocket error, continuing with mock data');
           };
 
           (get() as any).socket = ws;
         } catch (error) {
           console.error('WebSocket connection failed, using mock data:', error);
-          // Mock data already initialized, no action needed
         }
       };
 
       tryConnect();
     },
 
-  disconnect: () => {
-    const ws = (get() as any).socket;
-    if (ws) {
-      ws.close();
-    }
-    const mockInterval = (get() as any).mockInterval;
-    if (mockInterval) {
-      clearInterval(mockInterval);
-      (get() as any).mockInterval = null;
-    }
-    set({ isConnected: false });
-  },
-
-  toggleCamera: () => {
-    const active = get().cameraActive;
-    if (!active) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-          set({ cameraActive: true });
-          // Store stream for cleanup
-          (get() as any).videoStream = stream;
-        })
-        .catch((error) => {
-          console.error('Camera access denied:', error);
-        });
-    } else {
-      const stream = (get() as any).videoStream;
-      if (stream) {
-        stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+    disconnect: () => {
+      const ws = (get() as any).socket;
+      if (ws) {
+        ws.close();
       }
-      set({ cameraActive: false });
-    }
-  }
-}));
+      const mockInterval = (get() as any).mockInterval;
+      if (mockInterval) {
+        clearInterval(mockInterval);
+        (get() as any).mockInterval = null;
+      }
+      set({ isConnected: false });
+    },
 
+    toggleCamera: () => {
+      const active = get().cameraActive;
+      if (!active) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then((stream) => {
+            set({ cameraActive: true });
+            // Store stream for cleanup
+            (get() as any).videoStream = stream;
+          })
+          .catch((error) => {
+            console.error('Camera access denied:', error);
+          });
+      } else {
+        const stream = (get() as any).videoStream;
+        if (stream) {
+          stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+        }
+        set({ cameraActive: false });
+      }
+    }
+  };
+});
