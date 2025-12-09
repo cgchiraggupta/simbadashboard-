@@ -2,9 +2,9 @@ import React from 'react';
 import { LineChart, Line, ResponsiveContainer, YAxis, AreaChart, Area } from 'recharts';
 import type { LucideIcon } from 'lucide-react';
 import { Card, cn } from './ui/design-system';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
-interface SensorCardProps {
+interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   title: string;
   value: number;
   unit: string;
@@ -22,6 +22,8 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   data,
   max,
   thresholds,
+  className,
+  ...props
 }) => {
   let statusColor = 'text-success';
   let strokeColor = '#10b981'; // success
@@ -41,7 +43,10 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   }
 
   return (
-    <Card className="p-5 h-full flex flex-col justify-between group hover:border-white/20 transition-colors">
+    <Card 
+      className={cn("p-5 h-full flex flex-col justify-between group hover:border-white/20 transition-colors", className)} 
+      {...props}
+    >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className={cn("p-2 rounded-lg bg-white/5 text-gray-400 group-hover:text-white transition-colors")}>

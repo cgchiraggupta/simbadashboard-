@@ -88,17 +88,20 @@ export const Dashboard: React.FC = () => {
         
         {/* Sensor Cards Row - Top 4 critical */}
         {sensorList.slice(0, 4).map(sensor => (
-          <motion.div variants={itemVariants} key={sensor.id} className="col-span-12 sm:col-span-6 lg:col-span-3 h-[180px]">
-            <SensorCard 
-              title={sensor.title}
-              value={(data.sensors as any)[sensor.id]}
-              unit={sensor.unit}
-              icon={sensor.icon}
-              max={sensor.max}
-              thresholds={sensor.thresholds}
-              data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
-            />
-          </motion.div>
+          <SensorCard 
+            key={sensor.id}
+            variants={itemVariants}
+            initial="hidden"
+            animate="show"
+            className="col-span-12 sm:col-span-6 lg:col-span-3 h-[180px]"
+            title={sensor.title}
+            value={(data.sensors as any)[sensor.id]}
+            unit={sensor.unit}
+            icon={sensor.icon}
+            max={sensor.max}
+            thresholds={sensor.thresholds}
+            data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
+          />
         ))}
 
         {/* Middle Section: Charts & Controls */}
@@ -113,17 +116,19 @@ export const Dashboard: React.FC = () => {
               <div className="h-full">
                  <div className="grid grid-cols-2 gap-4 h-full">
                     {sensorList.slice(4, 6).map(sensor => (
-                      <motion.div variants={itemVariants} key={sensor.id}>
-                        <SensorCard 
-                          title={sensor.title}
-                          value={(data.sensors as any)[sensor.id]}
-                          unit={sensor.unit}
-                          icon={sensor.icon}
-                          max={sensor.max}
-                          thresholds={sensor.thresholds}
-                          data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
-                        />
-                      </motion.div>
+                      <SensorCard 
+                        key={sensor.id}
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="show"
+                        title={sensor.title}
+                        value={(data.sensors as any)[sensor.id]}
+                        unit={sensor.unit}
+                        icon={sensor.icon}
+                        max={sensor.max}
+                        thresholds={sensor.thresholds}
+                        data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
+                      />
                     ))}
                  </div>
               </div>
