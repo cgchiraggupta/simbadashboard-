@@ -86,25 +86,27 @@ export const Dashboard: React.FC = () => {
       {/* Main Grid */}
       <div className="grid grid-cols-12 gap-6">
         
-        {/* Sensor Cards Row - Top 4 critical */}
-        {sensorList.slice(0, 4).map(sensor => (
-          <SensorCard 
-            key={sensor.id}
-            variants={itemVariants}
-            initial="hidden"
-            animate="show"
-            className="col-span-12 sm:col-span-6 lg:col-span-3 h-[180px]"
-            title={sensor.title}
-            value={(data.sensors as any)[sensor.id]}
-            unit={sensor.unit}
-            icon={sensor.icon}
-            max={sensor.max}
-            thresholds={sensor.thresholds}
-            data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
-          />
-        ))}
+        {/* Sensor Cards Row - Top 5 */}
+        <div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {sensorList.slice(0, 5).map(sensor => (
+            <SensorCard 
+              key={sensor.id}
+              variants={itemVariants}
+              initial="hidden"
+              animate="show"
+              className="h-[180px]"
+              title={sensor.title}
+              value={(data.sensors as any)[sensor.id]}
+              unit={sensor.unit}
+              icon={sensor.icon}
+              max={sensor.max}
+              thresholds={sensor.thresholds}
+              data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
+            />
+          ))}
+        </div>
 
-        {/* Middle Section: Charts & Controls */}
+        {/* Middle Section: Charts & Alerts */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
            <motion.div variants={itemVariants}>
              <MainChart history={history} />
@@ -113,39 +115,19 @@ export const Dashboard: React.FC = () => {
               <motion.div variants={itemVariants} className="h-full">
                 <CurrentChart history={history} className="h-full" />
               </motion.div>
-              <div className="h-full">
-                 <div className="grid grid-cols-2 gap-4 h-full">
-                    {sensorList.slice(4, 6).map(sensor => (
-                      <SensorCard 
-                        key={sensor.id}
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="show"
-                        title={sensor.title}
-                        value={(data.sensors as any)[sensor.id]}
-                        unit={sensor.unit}
-                        icon={sensor.icon}
-                        max={sensor.max}
-                        thresholds={sensor.thresholds}
-                        data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
-                        className="h-full"
-                      />
-                    ))}
-                 </div>
-              </div>
+              <motion.div variants={itemVariants} className="h-full">
+                <AlertPanel alerts={data.alerts} />
+              </motion.div>
            </div>
         </div>
 
-        {/* Right Sidebar: Control & Alerts */}
-        <div className="col-span-12 lg:col-span-4 space-y-6 flex flex-col">
-           <motion.div variants={itemVariants}>
-             <ControlPanel />
+        {/* Right Sidebar: Control & Gauge */}
+        <div className="col-span-12 lg:col-span-4 h-full flex flex-col gap-6">
+           <motion.div variants={itemVariants} className="flex-1">
+             <ControlPanel className="h-full" />
            </motion.div>
-           <motion.div variants={itemVariants}>
-             <PressureGauge value={data.sensors.pressure} />
-           </motion.div>
-           <motion.div variants={itemVariants} className="flex-1 min-h-[200px]">
-             <AlertPanel alerts={data.alerts} />
+           <motion.div variants={itemVariants} className="flex-1">
+             <PressureGauge value={data.sensors.pressure} className="h-full" />
            </motion.div>
         </div>
 
@@ -153,4 +135,3 @@ export const Dashboard: React.FC = () => {
     </motion.div>
   );
 };
-

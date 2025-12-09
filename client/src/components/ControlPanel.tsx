@@ -4,7 +4,11 @@ import { useDrillStore } from '../store/useDrillStore';
 import { Card, Button, cn } from './ui/design-system';
 import { motion } from 'framer-motion';
 
-export const ControlPanel: React.FC = () => {
+interface ControlPanelProps {
+  className?: string;
+}
+
+export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
   const { data, sendCommand, isConnected } = useDrillStore();
   const isRunning = data?.status === 'Running';
 
@@ -17,19 +21,19 @@ export const ControlPanel: React.FC = () => {
   };
 
   return (
-    <Card className="p-6" gradient>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Power size={20} className="text-primary" />
-          Manual Control
-        </h2>
-        <div className="flex items-center gap-2">
-           <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-success" : "bg-danger")} />
-           <span className="text-xs text-gray-500 font-mono">{isConnected ? "WS_CONNECTED" : "DISCONNECTED"}</span>
-        </div>
-      </div>
-
+    <Card className={cn("p-6 flex flex-col justify-between", className)} gradient>
       <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Power size={20} className="text-primary" />
+            Manual Control
+          </h2>
+          <div className="flex items-center gap-2">
+             <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-success" : "bg-danger")} />
+             <span className="text-xs text-gray-500 font-mono">{isConnected ? "WS_CONNECTED" : "DISCONNECTED"}</span>
+          </div>
+        </div>
+
         {/* Main Action Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <Button
@@ -100,20 +104,19 @@ export const ControlPanel: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* E-STOP */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => sendCommand('STOP')}
-          className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold p-4 rounded-xl shadow-[0_0_30px_-10px_rgba(220,38,38,0.7)] border border-red-500/50 flex items-center justify-center gap-3 transition-all group relative overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30" />
-          <AlertOctagon size={24} className="group-hover:animate-pulse" />
-          EMERGENCY STOP
-        </motion.button>
       </div>
+
+      {/* E-STOP */}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => sendCommand('STOP')}
+        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold p-4 rounded-xl shadow-[0_0_30px_-10px_rgba(220,38,38,0.7)] border border-red-500/50 flex items-center justify-center gap-3 transition-all group relative overflow-hidden mt-8"
+      >
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30" />
+        <AlertOctagon size={24} className="group-hover:animate-pulse" />
+        EMERGENCY STOP
+      </motion.button>
     </Card>
   );
 };
-

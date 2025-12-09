@@ -129,12 +129,12 @@ export const CurrentChart: React.FC<ChartsProps> = ({ history, className }) => {
   );
 };
 
-export const PressureGauge: React.FC<{ value: number }> = ({ value }) => {
+export const PressureGauge: React.FC<{ value: number; className?: string }> = ({ value, className }) => {
   const max = 500;
   const percentage = Math.min((value / max) * 100, 100);
   
   return (
-    <Card className="p-6 flex flex-col items-center justify-center relative overflow-hidden">
+    <Card className={cn("p-6 flex flex-col items-center justify-center relative overflow-hidden", className)}>
        {/* Background subtle glow */}
        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
        
