@@ -63,9 +63,13 @@ export const useHealthStore = create<{
   history: HealthData[];
   isConnected: boolean;
   cameraActive: boolean;
+  eyesClosedDuration: number; // Duration in seconds
+  alertBeeping: boolean;
   connect: () => void;
   disconnect: () => void;
   toggleCamera: () => void;
+  updateEyeState: (eyesOpen: boolean) => void;
+  stopBeep: () => void;
 }>((set, get) => {
   // Initialize with mock data for development
   const initialData = generateMockHealthData();
@@ -75,6 +79,8 @@ export const useHealthStore = create<{
     history: [initialData],
     isConnected: false,
     cameraActive: false,
+    eyesClosedDuration: 0,
+    alertBeeping: false,
 
     connect: () => {
       if (get().isConnected) return;
@@ -164,9 +170,11 @@ export const useHealthStore = create<{
       if (!active) {
         navigator.mediaDevices.getUserMedia({ video: true })
           .then((stream) => {
-            set({ cameraActive: true });
+            set({ cameraActive: true, eyesClosedDuration: 0 });
             // Store stream for cleanup
             (get() as any).videoStream = stream;
+            // Start eye detection monitoring
+            startEyeDetection(stream);
           })
           .catch((error) => {
             console.error('Camera access denied:', error);
@@ -176,8 +184,134 @@ export const useHealthStore = create<{
         if (stream) {
           stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
         }
-        set({ cameraActive: false });
+        // Clear intervals
+        if ((get() as any).eyeDetectionInterval) {
+          clearInterval((get() as any).eyeDetectionInterval);
+          (get() as any).eyeDetectionInterval = null;
+        }
+        if ((get() as any).beepInterval) {
+          clearInterval((get() as any).beepInterval);
+          (get() as any).beepInterval = null;
+        }
+        set({ cameraActive: false, eyesClosedDuration: 0, alertBeeping: false });
       }
+    },
+
+    updateEyeState: (eyesOpen: boolean) => {
+      const current = get();
+      
+      // Update healthData with new eye state
+      if (current.healthData) {
+        const updatedHealthData = {
+          ...current.healthData,
+          faceDetection: {
+            ...current.healthData.faceDetection,
+            eyesOpen,
+            cameraActive: current.cameraActive,
+          }
+        };
+        set({ healthData: updatedHealthData });
+      }
+      
+      if (eyesOpen) {
+        // Eyes opened, reset duration
+        set({ eyesClosedDuration: 0, alertBeeping: false });
+        // Stop beep if playing
+        if ((get() as any).beepInterval) {
+          clearInterval((get() as any).beepInterval);
+          (get() as any).beepInterval = null;
+        }
+      } else {
+        // Eyes closed, increment duration
+        const newDuration = current.eyesClosedDuration + 0.1; // Update every 100ms
+        set({ eyesClosedDuration: newDuration });
+        
+        // If closed for 6 seconds, start beeping
+        if (newDuration >= 6 && !current.alertBeeping) {
+          set({ alertBeeping: true });
+          startBeep();
+        }
+      }
+    },
+
+    stopBeep: () => {
+      if ((get() as any).beepInterval) {
+        clearInterval((get() as any).beepInterval);
+        (get() as any).beepInterval = null;
+      }
+      set({ alertBeeping: false });
     }
   };
+
+  // Helper function to start beep sound
+  function startBeep() {
+    const beepInterval = setInterval(() => {
+      // Create beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800; // Beep frequency
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    }, 500); // Beep every 500ms
+
+    (get() as any).beepInterval = beepInterval;
+  }
+
+  // Helper function to start eye detection (simulated for now)
+  function startEyeDetection(stream: MediaStream) {
+    // For now, we'll simulate eye detection
+    // In production, you would use face-api.js, MediaPipe, or similar
+    let lastEyeState = true;
+    let eyeStateChangeTime = Date.now();
+    let closedStartTime: number | null = null;
+
+    const eyeDetectionInterval = setInterval(() => {
+      if (!get().cameraActive) {
+        clearInterval(eyeDetectionInterval);
+        return;
+      }
+
+      const current = get();
+      const now = Date.now();
+
+      // Simulate eye detection - in real implementation, use face detection library
+      // For demo: randomly change eye state, but keep it closed for 6+ seconds sometimes
+      const timeSinceChange = closedStartTime ? (now - closedStartTime) / 1000 : 0;
+
+      // Simulate: eyes close randomly, stay closed for 6+ seconds sometimes
+      if (Math.random() > 0.98) {
+        // Randomly close eyes
+        if (lastEyeState) {
+          lastEyeState = false;
+          closedStartTime = now;
+          get().updateEyeState(false);
+        }
+      } else if (Math.random() > 0.85 && !lastEyeState) {
+        // Randomly open eyes
+        lastEyeState = true;
+        closedStartTime = null;
+        get().updateEyeState(true);
+      } else if (!lastEyeState) {
+        // Continue tracking closed duration
+        get().updateEyeState(false);
+      } else {
+        // Eyes are open, ensure state is correct
+        if (!current.healthData?.faceDetection.eyesOpen) {
+          get().updateEyeState(true);
+        }
+      }
+    }, 100); // Check every 100ms
+
+    (get() as any).eyeDetectionInterval = eyeDetectionInterval;
+  }
 });

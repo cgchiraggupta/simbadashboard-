@@ -8,13 +8,45 @@ import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import type { HealthData } from '../types';
 
 export const HealthMonitor: React.FC = () => {
-  const { healthData, history, isConnected, cameraActive, connect, disconnect, toggleCamera } = useHealthStore();
+  const { healthData, history, isConnected, cameraActive, eyesClosedDuration, alertBeeping, connect, disconnect, toggleCamera, stopBeep } = useHealthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
 
   useEffect(() => {
     connect();
     return () => disconnect();
   }, []);
+
+  // Handle video stream when camera is activated
+  useEffect(() => {
+    if (cameraActive && videoRef.current) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play();
+          }
+        })
+        .catch((error) => {
+          console.error('Camera access error:', error);
+        });
+    } else {
+      if (videoRef.current && streamRef.current) {
+        videoRef.current.srcObject = null;
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    }
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [cameraActive]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -196,30 +228,107 @@ export const HealthMonitor: React.FC = () => {
               {cameraActive ? "Stop Camera" : "Start Camera"}
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-black/20 rounded-lg p-4 border border-white/5">
-              <div className="flex items-center gap-2 mb-2">
-                {faceDetection.faceDetected ? <Eye size={16} className="text-success" /> : <EyeOff size={16} className="text-gray-500" />}
-                <span className="text-sm font-medium text-gray-400">Face Detection</span>
+          {cameraActive ? (
+            <>
+              {/* Video Feed */}
+              <div className="mb-4 relative rounded-lg overflow-hidden border border-white/10 bg-black">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-48 object-cover"
+                />
+                {alertBeeping && (
+                  <div className="absolute inset-0 bg-danger/20 animate-pulse flex items-center justify-center">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 0.5 }}
+                      className="bg-danger/80 text-white px-4 py-2 rounded-lg font-bold text-lg"
+                    >
+                      ⚠️ EYES CLOSED ALERT
+                    </motion.div>
+                  </div>
+                )}
               </div>
-              <p className={cn("text-lg font-bold", faceDetection.faceDetected ? "text-success" : "text-gray-500")}>
-                {faceDetection.faceDetected ? "Face Detected" : "No Face Detected"}
-              </p>
-            </div>
-            <div className="bg-black/20 rounded-lg p-4 border border-white/5">
-              <div className="flex items-center gap-2 mb-2">
-                {faceDetection.eyesOpen ? <Eye size={16} className="text-success" /> : <EyeOff size={16} className="text-gray-500" />}
-                <span className="text-sm font-medium text-gray-400">Eye Activity</span>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-black/20 rounded-lg p-4 border border-white/5">
+                  <div className="flex items-center gap-2 mb-2">
+                    {faceDetection.faceDetected ? <Eye size={16} className="text-success" /> : <EyeOff size={16} className="text-gray-500" />}
+                    <span className="text-sm font-medium text-gray-400">Face Detection</span>
+                  </div>
+                  <p className={cn("text-lg font-bold", faceDetection.faceDetected ? "text-success" : "text-gray-500")}>
+                    {faceDetection.faceDetected ? "Face Detected" : "No Face Detected"}
+                  </p>
+                </div>
+                <div className={cn(
+                  "bg-black/20 rounded-lg p-4 border",
+                  alertBeeping ? "border-danger/50 bg-danger/10" : "border-white/5"
+                )}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {faceDetection.eyesOpen ? <Eye size={16} className="text-success" /> : <EyeOff size={16} className={alertBeeping ? "text-danger" : "text-gray-500"} />}
+                    <span className="text-sm font-medium text-gray-400">Eye Activity</span>
+                  </div>
+                  <p className={cn(
+                    "text-lg font-bold",
+                    faceDetection.eyesOpen ? "text-success" : alertBeeping ? "text-danger" : "text-gray-500"
+                  )}>
+                    {faceDetection.eyesOpen ? "Eyes Open - Active" : "Eyes Closed - Inactive"}
+                  </p>
+                  {!faceDetection.eyesOpen && eyesClosedDuration > 0 && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                        <span>Closed Duration:</span>
+                        <span className={cn("font-bold", eyesClosedDuration >= 6 ? "text-danger" : "text-gray-400")}>
+                          {eyesClosedDuration.toFixed(1)}s
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1.5">
+                        <motion.div
+                          className={cn("h-1.5 rounded-full", eyesClosedDuration >= 6 ? "bg-danger" : "bg-accent")}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((eyesClosedDuration / 6) * 100, 100)}%` }}
+                          transition={{ duration: 0.1 }}
+                        />
+                      </div>
+                      {eyesClosedDuration >= 6 && (
+                        <p className="text-xs text-danger font-bold mt-1 animate-pulse">
+                          ⚠️ Alert: Eyes closed for {eyesClosedDuration.toFixed(1)}s
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className={cn("text-lg font-bold", faceDetection.eyesOpen ? "text-success" : "text-gray-500")}>
-                {faceDetection.eyesOpen ? "Eyes Open - Active" : "Eyes Closed - Inactive"}
-              </p>
-            </div>
-          </div>
-          {!cameraActive && (
+              {alertBeeping && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-4 bg-danger/20 border border-danger/50 rounded-lg flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bell className="text-danger animate-pulse" size={24} />
+                    <div>
+                      <p className="text-danger font-bold">ALERT: Eyes Closed for 6+ Seconds</p>
+                      <p className="text-danger/80 text-sm">Beep sound is active</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="danger"
+                    onClick={stopBeep}
+                    className="flex items-center gap-2"
+                  >
+                    Stop Alert
+                  </Button>
+                </motion.div>
+              )}
+            </>
+          ) : (
             <div className="mt-4 p-8 bg-black/20 rounded-lg border border-white/5 text-center">
               <VideoOff size={48} className="mx-auto mb-2 text-gray-500 opacity-50" />
               <p className="text-gray-500">Camera not active</p>
+              <p className="text-gray-600 text-sm mt-2">Click "Start Camera" to begin eye detection monitoring</p>
             </div>
           )}
         </Card>
