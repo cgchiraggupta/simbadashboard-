@@ -5,9 +5,10 @@ import { Card } from './ui/design-system';
 
 interface ChartsProps {
   history: DrillData[];
+  className?: string;
 }
 
-export const MainChart: React.FC<ChartsProps> = ({ history }) => {
+export const MainChart: React.FC<ChartsProps> = ({ history, className }) => {
   const data = history.map(d => ({
     time: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     rpm: d.sensors.rpm,
@@ -15,7 +16,7 @@ export const MainChart: React.FC<ChartsProps> = ({ history }) => {
   }));
 
   return (
-    <Card className="p-6 h-[400px] flex flex-col">
+    <Card className={cn("p-6 h-[400px] flex flex-col", className)}>
       <div className="flex justify-between items-center mb-6">
          <h3 className="text-gray-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
            <span className="w-2 h-2 rounded-full bg-primary" />
@@ -97,14 +98,14 @@ export const MainChart: React.FC<ChartsProps> = ({ history }) => {
   );
 };
 
-export const CurrentChart: React.FC<ChartsProps> = ({ history }) => {
+export const CurrentChart: React.FC<ChartsProps> = ({ history, className }) => {
   const data = history.slice(-30).map(d => ({
     time: d.timestamp,
     current: d.sensors.current
   }));
 
   return (
-    <Card className="p-6 h-[200px] flex flex-col">
+    <Card className={cn("p-6 h-[200px] flex flex-col", className)}>
       <h3 className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-success" />
         Current Load

@@ -109,9 +109,9 @@ export const Dashboard: React.FC = () => {
            <motion.div variants={itemVariants}>
              <MainChart history={history} />
            </motion.div>
-           <div className="grid grid-cols-2 gap-6">
-              <motion.div variants={itemVariants}>
-                <CurrentChart history={history} />
+           <div className="grid grid-cols-2 gap-6 h-[200px]">
+              <motion.div variants={itemVariants} className="h-full">
+                <CurrentChart history={history} className="h-full" />
               </motion.div>
               <div className="h-full">
                  <div className="grid grid-cols-2 gap-4 h-full">
@@ -128,6 +128,7 @@ export const Dashboard: React.FC = () => {
                         max={sensor.max}
                         thresholds={sensor.thresholds}
                         data={history.map(h => ({ value: (h.sensors as any)[sensor.id] }))}
+                        className="h-full"
                       />
                     ))}
                  </div>
