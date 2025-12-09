@@ -1,7 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { DrillData } from '../types';
-import { Card } from './ui/design-system';
+import { Card, cn } from './ui/design-system';
 
 interface ChartsProps {
   history: DrillData[];
