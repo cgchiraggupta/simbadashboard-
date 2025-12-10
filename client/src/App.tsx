@@ -6,23 +6,36 @@ import { HealthMonitor } from './pages/HealthMonitor';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { About } from './pages/About';
+import { Login } from './pages/Login';
 import { useDrillStore } from './store/useDrillStore';
 import { useHealthStore } from './store/useHealthStore';
+import { useAuthStore } from './store/useAuthStore';
 
 function App() {
   const { connect, disconnect } = useDrillStore();
   const { connect: connectHealth, disconnect: disconnectHealth } = useHealthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  console.log('App render - isAuthenticated:', isAuthenticated);
 
   useEffect(() => {
-    connect();
-    connectHealth();
+    if (isAuthenticated) {
+      connect();
+      connectHealth();
+    }
     return () => {
       disconnect();
       disconnectHealth();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
+  // Show Login page if not authenticated
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  // Show main app if authenticated
   return (
     <Router>
       <Layout>

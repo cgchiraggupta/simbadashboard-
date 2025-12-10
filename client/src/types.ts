@@ -1,3 +1,39 @@
+// ============================================================================
+// OPERATOR AUTHENTICATION TYPES
+// ============================================================================
+
+export interface Operator {
+  id: string;
+  name: string;
+  email: string;
+  role: 'operator' | 'supervisor' | 'admin';
+  avatar?: string;
+}
+
+export interface OperatorSession {
+  id: string;
+  operatorId: string;
+  operatorName: string;
+  loginTime: number;
+  logoutTime?: number;
+  status: 'active' | 'completed';
+  healthAlerts: number;
+  drillAlerts: number;
+}
+
+export interface AuthState {
+  operator: Operator | null;
+  isAuthenticated: boolean;
+  currentSession: OperatorSession | null;
+  sessionHistory: OperatorSession[];
+  login: (operatorId: string, password: string) => boolean;
+  logout: () => void;
+}
+
+// ============================================================================
+// SENSOR & DRILL TYPES
+// ============================================================================
+
 export interface SensorData {
   rpm: number;
   vibration: number;

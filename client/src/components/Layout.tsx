@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BarChart2, Settings, Info, Menu, Zap, HeartPulse } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Settings, Info, Menu, Zap, HeartPulse, LogOut, Clock } from 'lucide-react';
 import { cn } from './ui/design-system';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,6 +42,86 @@ const NavItem = ({ icon: Icon, label, to, sidebarOpen }: { icon: any, label: str
         </AnimatePresence>
       </div>
     </Link>
+  );
+};
+
+// Operator Footer Component
+const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
+  const { operator, currentSession, logout } = useAuthStore();
+
+  if (!operator) return null;
+
+  // Calculate session duration
+  const getSessionDuration = () => {
+    if (!currentSession) return '0m';
+    const duration = Date.now() - currentSession.loginTime;
+    const minutes = Math.floor(duration / 60000);
+    const hours = Math.floor(minutes / 60);
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    return `${minutes}m`;
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  return (
+    <div className="p-4 border-t border-white/5 space-y-2">
+      {/* Operator Info */}
+      <div className={cn(
+        "flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5",
+        !sidebarOpen && "justify-center"
+      )}>
+        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-blue-600 border border-white/20 flex items-center justify-center text-white font-bold text-sm">
+          {getInitials(operator.name)}
+        </div>
+        {sidebarOpen && (
+          <div className="overflow-hidden flex-1">
+            <p className="text-sm font-medium text-white truncate">{operator.name}</p>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-green-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Online
+              </span>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-400 flex items-center gap-1">
+                <Clock size={10} />
+                {getSessionDuration()}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Session Stats (only when sidebar open) */}
+      {sidebarOpen && currentSession && (
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="p-2 bg-black/20 rounded-lg border border-white/5 text-center">
+            <p className="text-gray-500">Health Alerts</p>
+            <p className="text-white font-bold">{currentSession.healthAlerts}</p>
+          </div>
+          <div className="p-2 bg-black/20 rounded-lg border border-white/5 text-center">
+            <p className="text-gray-500">Drill Alerts</p>
+            <p className="text-white font-bold">{currentSession.drillAlerts}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Button */}
+      <button
+        onClick={logout}
+        className={cn(
+          "w-full flex items-center gap-2 p-2 rounded-lg",
+          "bg-danger/10 hover:bg-danger/20 border border-danger/20",
+          "text-danger text-sm font-medium transition-all",
+          !sidebarOpen && "justify-center"
+        )}
+      >
+        <LogOut size={16} />
+        {sidebarOpen && <span>Logout</span>}
+      </button>
+    </div>
   );
 };
 
@@ -89,21 +170,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <NavItem icon={Info} label="About" to="/about" sidebarOpen={sidebarOpen} />
         </nav>
 
-        {/* User Profile / Status Footer */}
-        <div className="p-4 border-t border-white/5">
-          <div className={cn("flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5", !sidebarOpen && "justify-center")}>
-             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600 border border-white/10" />
-             {sidebarOpen && (
-               <div className="overflow-hidden">
-                 <p className="text-sm font-medium text-white">Operator</p>
-                 <p className="text-xs text-green-400 flex items-center gap-1">
-                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                   Connected
-                 </p>
-               </div>
-             )}
-          </div>
-        </div>
+        {/* Operator Profile / Status Footer */}
+        <OperatorFooter sidebarOpen={sidebarOpen} />
       </motion.aside>
 
       {/* Main Content */}

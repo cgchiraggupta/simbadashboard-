@@ -1,3 +1,40 @@
+/**
+ * ============================================================================
+ * DROWSINESS DETECTION SYSTEM - IMPLEMENTATION GUIDE
+ * ============================================================================
+ * 
+ * TWO ALERT SCENARIOS:
+ * 
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │ SCENARIO 1: Person NOT in frame (no face detected)                     │
+ * │   → 6-second timer starts                                              │
+ * │   → Alert triggers with full-page overlay + beep sound                 │
+ * ├─────────────────────────────────────────────────────────────────────────┤
+ * │ SCENARIO 2: Person IN frame but EYES CLOSED                            │
+ * │   → 6-second timer starts                                              │
+ * │   → Alert triggers with full-page overlay + beep sound                 │
+ * ├─────────────────────────────────────────────────────────────────────────┤
+ * │ SAFE STATE: Person in frame + Eyes OPEN                                │
+ * │   → Timer resets to 0                                                  │
+ * │   → No new alert (existing alert stays until STOP button clicked)      │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ * 
+ * ALERT FEATURES:
+ * - Full-page red overlay with backdrop blur
+ * - Pulsing animation on overlay
+ * - Large alert modal with warning icon
+ * - 800Hz beep sound every 500ms
+ * - "STOP ALERT" button (only way to dismiss)
+ * 
+ * EYE DETECTION:
+ * - Uses Eye Aspect Ratio (EAR) algorithm
+ * - EAR < 0.21 = eyes closed
+ * - EAR > 0.21 = eyes open
+ * - Detection runs every 100ms
+ * 
+ * ============================================================================
+ */
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Heart, Wind, Thermometer, Bell, Video, VideoOff, Eye, EyeOff } from 'lucide-react';
@@ -35,7 +72,7 @@ export const HealthMonitor: React.FC = () => {
     const vertical2 = Math.abs(eye[2].y - eye[4].y);
     // Horizontal distance
     const horizontal = Math.abs(eye[0].x - eye[3].x);
-    
+
     // EAR formula
     const ear = (vertical1 + vertical2) / (2.0 * horizontal);
     return ear;
@@ -53,8 +90,14 @@ export const HealthMonitor: React.FC = () => {
       if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
       try {
+        // Use more sensitive detection options
+        const options = new faceapi.TinyFaceDetectorOptions({
+          inputSize: 224,  // Smaller input size for faster detection
+          scoreThreshold: 0.4  // Lower threshold for better detection (default is 0.5)
+        });
+
         const detections = await faceapi
-          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+          .detectSingleFace(video, options)
           .withFaceLandmarks();
 
         if (detections) {
@@ -67,10 +110,12 @@ export const HealthMonitor: React.FC = () => {
           const rightEAR = calculateEAR(rightEye);
           const avgEAR = (leftEAR + rightEAR) / 2;
 
-          // EAR threshold: below 0.25 typically means eyes are closed
-          const EYE_CLOSED_THRESHOLD = 0.25;
+          // EAR threshold: INCREASED to 0.26 for better closed eye detection
+          // Below 0.26 = eyes closed, Above 0.26 = eyes open
+          const EYE_CLOSED_THRESHOLD = 0.26;
           const eyesOpen = avgEAR > EYE_CLOSED_THRESHOLD;
 
+          console.log(`👁️ EAR: ${avgEAR.toFixed(3)} | Threshold: ${EYE_CLOSED_THRESHOLD} | Eyes: ${eyesOpen ? '✅ OPEN' : '❌ CLOSED'}`);
           updateEyeState(eyesOpen, true);
 
           // Draw on canvas for debugging (optional)
@@ -79,28 +124,29 @@ export const HealthMonitor: React.FC = () => {
             if (ctx) {
               ctx.clearRect(0, 0, canvas.width, canvas.height);
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              
+
               // Draw face detection box
               const box = detections.detection.box;
               ctx.strokeStyle = eyesOpen ? '#10b981' : '#ef4444';
-              ctx.lineWidth = 2;
+              ctx.lineWidth = 3;
               ctx.strokeRect(box.x, box.y, box.width, box.height);
 
               // Draw eye landmarks
               ctx.fillStyle = eyesOpen ? '#10b981' : '#ef4444';
               leftEye.forEach(point => {
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
                 ctx.fill();
               });
               rightEye.forEach(point => {
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
                 ctx.fill();
               });
             }
           }
         } else {
+          console.log('No face detected in frame');
           updateEyeState(false, false);
         }
       } catch (error) {
@@ -123,22 +169,46 @@ export const HealthMonitor: React.FC = () => {
   // Handle video stream
   useEffect(() => {
     if (cameraActive && videoRef.current) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      // Proper video constraints with ideal resolution and camera preference
+      const constraints = {
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user', // Front camera on mobile devices
+        }
+      };
+
+      navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
           streamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.play();
-            
-            // Set canvas size to match video
-            if (canvasRef.current) {
-              canvasRef.current.width = videoRef.current.videoWidth || 640;
-              canvasRef.current.height = videoRef.current.videoHeight || 480;
-            }
+
+            // Wait for video metadata to load before setting canvas dimensions
+            const handleLoadedMetadata = () => {
+              if (videoRef.current && canvasRef.current) {
+                const videoWidth = videoRef.current.videoWidth;
+                const videoHeight = videoRef.current.videoHeight;
+                canvasRef.current.width = videoWidth;
+                canvasRef.current.height = videoHeight;
+                console.log(`Canvas sized to ${videoWidth}x${videoHeight}`);
+              }
+            };
+
+            videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+            // Cleanup event listener
+            return () => {
+              if (videoRef.current) {
+                videoRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+              }
+            };
           }
         })
         .catch((error) => {
           console.error('Camera access error:', error);
+          alert('Unable to access camera. Please ensure camera permissions are granted.');
         });
     } else {
       if (videoRef.current && streamRef.current) {
@@ -301,8 +371,8 @@ export const HealthMonitor: React.FC = () => {
             <div className={cn(
               "px-4 py-2 rounded-full border font-bold text-sm",
               criticalCount > 0 ? "bg-danger/10 text-danger border-danger/20" :
-              warningCount > 0 ? "bg-accent/10 text-accent border-accent/20" :
-              "bg-success/10 text-success border-success/20"
+                warningCount > 0 ? "bg-accent/10 text-accent border-accent/20" :
+                  "bg-success/10 text-success border-success/20"
             )}>
               {criticalCount + warningCount} ACTIVE
             </div>
@@ -330,18 +400,17 @@ export const HealthMonitor: React.FC = () => {
           {cameraActive ? (
             <>
               {/* Video Feed with Overlay */}
-              <div className="mb-4 relative rounded-lg overflow-hidden border border-white/10 bg-black">
+              <div className="mb-4 relative rounded-lg overflow-hidden border border-white/10 bg-black" style={{ aspectRatio: '4/3' }}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-48 object-cover"
+                  className="w-full h-full object-cover"
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ width: '100%', height: '100%' }}
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
                 {alertBeeping && (
                   <div className="absolute inset-0 bg-danger/20 animate-pulse flex items-center justify-center">
@@ -355,7 +424,7 @@ export const HealthMonitor: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-black/20 rounded-lg p-4 border border-white/5">
                   <div className="flex items-center gap-2 mb-2">
@@ -378,7 +447,11 @@ export const HealthMonitor: React.FC = () => {
                     "text-lg font-bold",
                     faceDetection.eyesOpen ? "text-success" : alertBeeping ? "text-danger" : "text-gray-500"
                   )}>
-                    {faceDetection.eyesOpen ? "Eyes Open - Active" : "Eyes Closed - Inactive"}
+                    {faceDetection.faceDetected ? (
+                      faceDetection.eyesOpen ? "Eyes Detected - Open ✓" : "Eyes Closed"
+                    ) : (
+                      "No Eyes Detected"
+                    )}
                   </p>
                   {!faceDetection.eyesOpen && eyesClosedDuration > 0 && (
                     <div className="mt-2">
@@ -453,6 +526,66 @@ export const HealthMonitor: React.FC = () => {
           Labour Health Monitoring System • MAX30102 Sensor • ESP32 Connected
         </p>
       </motion.div>
+
+      {/* FULL-PAGE ALERT OVERLAY - Covers entire website */}
+      {alertBeeping && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
+          {/* Semi-transparent red background covering entire screen */}
+          <div className="absolute inset-0 bg-danger/30 backdrop-blur-sm animate-pulse" />
+
+          {/* Alert content */}
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 1 }}
+            className="relative z-10 bg-danger/95 text-white p-12 rounded-2xl shadow-2xl max-w-2xl mx-4 border-4 border-white"
+          >
+            <div className="text-center">
+              {/* Warning Icon */}
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 0.5 }}
+                className="text-9xl mb-6"
+              >
+                ⚠️
+              </motion.div>
+
+              {/* Alert Title */}
+              <h1 className="text-5xl font-black mb-4 uppercase tracking-wider">
+                ALERT!
+              </h1>
+
+              {/* Alert Message */}
+              <p className="text-3xl font-bold mb-6">
+                Eyes Closed for 6+ Seconds
+              </p>
+
+              <p className="text-xl mb-8 opacity-90">
+                Worker may be drowsy or unconscious
+              </p>
+
+              {/* Beep indicator */}
+              <div className="flex items-center justify-center gap-3 mb-8">
+                <Bell className="animate-pulse" size={32} />
+                <span className="text-2xl font-bold">Beep Sound Active</span>
+              </div>
+
+              {/* Stop Button */}
+              <Button
+                variant="outline"
+                onClick={stopBeep}
+                className="bg-white text-danger hover:bg-gray-100 text-2xl font-bold py-6 px-12 rounded-xl border-4 border-white shadow-lg"
+              >
+                STOP ALERT
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };

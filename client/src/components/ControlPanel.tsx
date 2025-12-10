@@ -30,7 +30,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
           </h2>
           <div className="flex items-center gap-2">
              <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-success" : "bg-danger")} />
-             <span className="text-xs text-gray-500 font-mono">{isConnected ? "WS_CONNECTED" : "DISCONNECTED"}</span>
+             <span className={cn("text-xs font-mono", isConnected ? "text-success" : "text-danger")}>
+               {isConnected ? "ONLINE" : "OFFLINE"}
+             </span>
           </div>
         </div>
 

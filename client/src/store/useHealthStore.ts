@@ -1,3 +1,33 @@
+/**
+ * ============================================================================
+ * HEALTH STORE - DROWSINESS DETECTION STATE MANAGEMENT
+ * ============================================================================
+ * 
+ * TWO ALERT SCENARIOS (both trigger 6-second timer):
+ * 
+ * SCENARIO 1: Person NOT in frame (no face detected)
+ *   → Timer starts counting
+ *   → At 6 seconds: ALERT triggers
+ *   → Console: "👤 NO FACE DETECTED - Timer: X.Xs"
+ * 
+ * SCENARIO 2: Person IN frame but EYES CLOSED
+ *   → Timer starts counting  
+ *   → At 6 seconds: ALERT triggers
+ *   → Console: "👁️ EYES CLOSED (face in frame) - Timer: X.Xs"
+ * 
+ * SAFE STATE: Person in frame + Eyes OPEN
+ *   → Timer resets to 0
+ *   → No alert (but existing alert stays until stopped)
+ * 
+ * ALERT BEHAVIOR:
+ * - Triggers when eyesClosedDuration >= 6 seconds
+ * - Does NOT auto-stop when eyes reopen or face returns
+ * - Only stops via stopBeep() (STOP ALERT button click)
+ * - Beep sound (800Hz) plays every 500ms continuously
+ * 
+ * ============================================================================
+ */
+
 import { create } from 'zustand';
 import * as faceapi from 'face-api.js';
 import type { HealthData } from '../types';
@@ -79,29 +109,45 @@ export const useHealthStore = create<{
 
     loadModels: async () => {
       if (get().modelsLoaded) return;
-      
+
       try {
-        // Use jsdelivr CDN for face-api.js models
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+        // Use correct model URL for face-api.js
+        const MODEL_URL = '/models';
+
+        console.log('Loading face detection models...');
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
         ]);
         set({ modelsLoaded: true });
-        console.log('Face detection models loaded successfully');
+        console.log('✅ Face detection models loaded successfully');
       } catch (error) {
-        console.error('Failed to load face detection models:', error);
-        // Try alternative CDN
+        console.error('Failed to load face detection models from /models:', error);
+        // Try CDN as fallback
         try {
-          const ALT_MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+          const CDN_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+          console.log('Trying CDN fallback...');
           await Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri(ALT_MODEL_URL),
-            faceapi.nets.faceLandmark68Net.loadFromUri(ALT_MODEL_URL),
+            faceapi.nets.tinyFaceDetector.loadFromUri(CDN_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(CDN_URL),
           ]);
           set({ modelsLoaded: true });
-          console.log('Face detection models loaded from alternative CDN');
+          console.log('✅ Face detection models loaded from CDN');
         } catch (altError) {
-          console.error('Failed to load from alternative CDN:', altError);
+          console.error('Failed to load from CDN:', altError);
+          // Try jsdelivr with different path
+          try {
+            const ALT_CDN = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+            console.log('Trying alternative CDN...');
+            await Promise.all([
+              faceapi.nets.tinyFaceDetector.loadFromUri(ALT_CDN),
+              faceapi.nets.faceLandmark68Net.loadFromUri(ALT_CDN),
+            ]);
+            set({ modelsLoaded: true });
+            console.log('✅ Face detection models loaded from alternative CDN');
+          } catch (finalError) {
+            console.error('All model loading attempts failed:', finalError);
+          }
         }
       }
     },
@@ -198,7 +244,15 @@ export const useHealthStore = create<{
     toggleCamera: () => {
       const active = get().cameraActive;
       if (!active) {
-        navigator.mediaDevices.getUserMedia({ video: true })
+        const constraints = {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user',
+          }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
           .then(async (stream) => {
             // Ensure models are loaded
             await get().loadModels();
@@ -207,6 +261,7 @@ export const useHealthStore = create<{
           })
           .catch((error) => {
             console.error('Camera access denied:', error);
+            alert('Unable to access camera. Please check permissions.');
           });
       } else {
         const stream = (get() as any).videoStream;
@@ -227,44 +282,75 @@ export const useHealthStore = create<{
 
     updateEyeState: (eyesOpen: boolean, faceDetected: boolean) => {
       const current = get();
-      
-      if (eyesOpen) {
-        set({ eyesClosedDuration: 0, alertBeeping: false });
-        if ((get() as any).beepInterval) {
-          clearInterval((get() as any).beepInterval);
-          (get() as any).beepInterval = null;
-        }
-        
+
+      // SCENARIO 1: Eyes are OPEN and face is detected - SAFE STATE
+      if (eyesOpen && faceDetected) {
+        // Reset duration counter when eyes open, but DON'T stop the alert
+        // Alert should only stop when user clicks "Stop Alert" button
+        set({ eyesClosedDuration: 0 });
+
         if (current.healthData) {
           const updatedHealthData = {
             ...current.healthData,
             faceDetection: {
-              faceDetected,
+              faceDetected: true,
               eyesOpen: true,
               cameraActive: current.cameraActive,
             }
           };
           set({ healthData: updatedHealthData });
         }
-      } else {
+      } 
+      // SCENARIO 2: Face detected but EYES CLOSED - DANGER! Start timer
+      else if (faceDetected && !eyesOpen) {
         const newDuration = current.eyesClosedDuration + 0.1;
         set({ eyesClosedDuration: newDuration });
-        
+
+        console.log(`👁️ EYES CLOSED (face in frame) - Timer: ${newDuration.toFixed(1)}s`);
+
         if (current.healthData) {
           const updatedHealthData = {
             ...current.healthData,
             faceDetection: {
-              faceDetected,
+              faceDetected: true,
               eyesOpen: false,
               cameraActive: current.cameraActive,
             }
           };
           set({ healthData: updatedHealthData });
         }
-        
+
+        // Trigger alert when eyes closed for 6+ seconds
         if (newDuration >= 6 && !current.alertBeeping) {
           set({ alertBeeping: true });
           startBeep();
+          console.log('🚨 ALERT TRIGGERED: Eyes closed for 6+ seconds (face in frame)!');
+        }
+      }
+      // SCENARIO 3: NO FACE detected - DANGER! Start timer
+      else if (!faceDetected) {
+        const newDuration = current.eyesClosedDuration + 0.1;
+        set({ eyesClosedDuration: newDuration });
+
+        console.log(`👤 NO FACE DETECTED - Timer: ${newDuration.toFixed(1)}s`);
+
+        if (current.healthData) {
+          const updatedHealthData = {
+            ...current.healthData,
+            faceDetection: {
+              faceDetected: false,
+              eyesOpen: false,
+              cameraActive: current.cameraActive,
+            }
+          };
+          set({ healthData: updatedHealthData });
+        }
+
+        // Trigger alert when no face for 6+ seconds
+        if (newDuration >= 6 && !current.alertBeeping) {
+          set({ alertBeeping: true });
+          startBeep();
+          console.log('🚨 ALERT TRIGGERED: No face detected for 6+ seconds!');
         }
       }
     },
@@ -275,6 +361,7 @@ export const useHealthStore = create<{
         (get() as any).beepInterval = null;
       }
       set({ alertBeeping: false });
+      console.log('✅ Alert stopped by user');
     }
   };
 
