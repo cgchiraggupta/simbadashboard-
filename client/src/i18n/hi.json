@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "ड्रिलसेंस",
+    "tagline": "औद्योगिक निगरानी प्रणाली"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "healthMonitor": "स्वास्थ्य मॉनिटर",
+    "analytics": "विश्लेषण",
+    "settings": "सेटिंग्स",
+    "about": "जानकारी",
+    "logout": "लॉग आउट"
+  },
+  "dashboard": {
+    "title": "लाइव निगरानी",
+    "sessionId": "सत्र आईडी",
+    "systemStatus": "सिस्टम स्थिति",
+    "running": "चालू",
+    "stopped": "बंद",
+    "rpmVsVibration": "आरपीएम बनाम कंपन",
+    "currentLoad": "वर्तमान भार",
+    "systemAlerts": "सिस्टम अलर्ट",
+    "active": "सक्रिय"
+  },
+  "sensors": {
+    "rotarySpeed": "घूर्णन गति",
+    "vibration": "कंपन",
+    "noiseLevel": "शोर स्तर",
+    "motorTemp": "मोटर तापमान",
+    "humidity": "नमी",
+    "pressure": "दबाव",
+    "rpm": "आरपीएम",
+    "mmPerSec": "मिमी/से²",
+    "db": "डीबी",
+    "celsius": "°से",
+    "percent": "%",
+    "normal": "सामान्य",
+    "warning": "चेतावनी",
+    "critical": "गंभीर"
+  },
+  "controls": {
+    "manualControl": "मैनुअल नियंत्रण",
+    "online": "ऑनलाइन",
+    "offline": "ऑफलाइन",
+    "startOperation": "संचालन शुरू",
+    "stopOperation": "संचालन बंद",
+    "systemReset": "सिस्टम रीसेट",
+    "emergencyStop": "आपातकालीन रोक",
+    "rotarySpeedTarget": "घूर्णन गति लक्ष्य",
+    "feedPressureForce": "फीड दबाव बल",
+    "low": "कम",
+    "high": "अधिक"
+  },
+  "operator": {
+    "online": "ऑनलाइन",
+    "offline": "ऑफलाइन",
+    "healthAlerts": "स्वास्थ्य अलर्ट",
+    "drillAlerts": "ड्रिल अलर्ट",
+    "sessionDuration": "सत्र"
+  },
+  "healthMonitor": {
+    "title": "ऑपरेटर स्वास्थ्य मॉनिटर",
+    "subtitle": "नींद का पता लगाने की प्रणाली",
+    "startCamera": "कैमरा शुरू करें",
+    "stopCamera": "कैमरा बंद करें",
+    "eyesDetected": "आंखें पहचानी गईं",
+    "open": "खुली",
+    "closed": "बंद",
+    "noFaceDetected": "चेहरा नहीं मिला",
+    "faceDetected": "चेहरा पहचाना गया",
+    "alertTimer": "अलर्ट टाइमर",
+    "stopAlert": "अलर्ट बंद करें",
+    "drowsinessAlert": "नींद की चेतावनी",
+    "alertMessage": "6 सेकंड से अधिक समय से आंखें बंद या चेहरा नहीं मिला!",
+    "wakeUp": "जागो!"
+  },
+  "login": {
+    "title": "ऑपरेटर लॉगिन",
+    "username": "उपयोगकर्ता नाम",
+    "password": "पासवर्ड",
+    "loginButton": "लॉगिन",
+    "demoCredentials": "डेमो क्रेडेंशियल",
+    "operator": "ऑपरेटर",
+    "admin": "एडमिन"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफल",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "confirm": "पुष्टि करें",
+    "seconds": "सेकंड"
+  },
+  "language": {
+    "english": "English",
+    "hindi": "हिंदी",
+    "selectLanguage": "भाषा चुनें"
+  }
+}

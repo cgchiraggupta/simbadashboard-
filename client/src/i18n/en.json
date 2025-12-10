@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "DRILLSENSE",
+    "tagline": "Industrial Monitoring System"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "healthMonitor": "Health Monitor",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "about": "About",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Live Monitoring",
+    "sessionId": "SESSION ID",
+    "systemStatus": "SYSTEM STATUS",
+    "running": "RUNNING",
+    "stopped": "STOPPED",
+    "rpmVsVibration": "RPM VS VIBRATION",
+    "currentLoad": "Current Load",
+    "systemAlerts": "SYSTEM ALERTS",
+    "active": "ACTIVE"
+  },
+  "sensors": {
+    "rotarySpeed": "ROTARY SPEED",
+    "vibration": "VIBRATION",
+    "noiseLevel": "NOISE LEVEL",
+    "motorTemp": "MOTOR TEMP",
+    "humidity": "HUMIDITY",
+    "pressure": "PRESSURE",
+    "rpm": "RPM",
+    "mmPerSec": "mm/s²",
+    "db": "dB",
+    "celsius": "°C",
+    "percent": "%",
+    "normal": "NORMAL",
+    "warning": "WARNING",
+    "critical": "CRITICAL"
+  },
+  "controls": {
+    "manualControl": "Manual Control",
+    "online": "ONLINE",
+    "offline": "OFFLINE",
+    "startOperation": "START OPERATION",
+    "stopOperation": "STOP OPERATION",
+    "systemReset": "SYSTEM RESET",
+    "emergencyStop": "EMERGENCY STOP",
+    "rotarySpeedTarget": "Rotary Speed Target",
+    "feedPressureForce": "Feed Pressure Force",
+    "low": "LOW",
+    "high": "HIGH"
+  },
+  "operator": {
+    "online": "Online",
+    "offline": "Offline",
+    "healthAlerts": "Health Alerts",
+    "drillAlerts": "Drill Alerts",
+    "sessionDuration": "Session"
+  },
+  "healthMonitor": {
+    "title": "Operator Health Monitor",
+    "subtitle": "Drowsiness Detection System",
+    "startCamera": "Start Camera",
+    "stopCamera": "Stop Camera",
+    "eyesDetected": "Eyes Detected",
+    "open": "Open",
+    "closed": "Closed",
+    "noFaceDetected": "No Face Detected",
+    "faceDetected": "Face Detected",
+    "alertTimer": "Alert Timer",
+    "stopAlert": "STOP ALERT",
+    "drowsinessAlert": "DROWSINESS ALERT",
+    "alertMessage": "Eyes closed or no face detected for more than 6 seconds!",
+    "wakeUp": "WAKE UP!"
+  },
+  "login": {
+    "title": "Operator Login",
+    "username": "Username",
+    "password": "Password",
+    "loginButton": "Login",
+    "demoCredentials": "Demo Credentials",
+    "operator": "Operator",
+    "admin": "Admin"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm",
+    "seconds": "seconds"
+  },
+  "language": {
+    "english": "English",
+    "hindi": "हिंदी",
+    "selectLanguage": "Select Language"
+  }
+}

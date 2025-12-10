@@ -3,6 +3,10 @@ import { LineChart, Line, ResponsiveContainer, YAxis, AreaChart, Area } from 're
 import type { LucideIcon } from 'lucide-react';
 import { Card, cn } from './ui/design-system';
 import { motion, type HTMLMotionProps } from 'framer-motion';
+import { AnalogGauge, CircularGauge, ThermometerGauge } from './AnalogGauge';
+
+type DisplayMode = 'digital' | 'analog';
+type GaugeType = 'speedometer' | 'circular' | 'thermometer';
 
 interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   title: string;
@@ -10,8 +14,11 @@ interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   unit: string;
   icon: LucideIcon;
   data: { value: number }[];
+  min?: number;
   max: number;
   thresholds: { warning: number; critical: number };
+  displayMode?: DisplayMode;
+  gaugeType?: GaugeType;
 }
 
 export const SensorCard: React.FC<SensorCardProps> = ({
@@ -20,8 +27,11 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   unit,
   icon: Icon,
   data,
+  min = 0,
   max,
   thresholds,
+  displayMode = 'analog', // Default to analog
+  gaugeType = 'speedometer',
   className,
   ...props
 }) => {
@@ -29,19 +39,91 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   let strokeColor = '#10b981'; // success
   let glowColor = 'rgba(16, 185, 129, 0.2)';
   let statusText = 'NORMAL';
+  let status: 'normal' | 'warning' | 'critical' = 'normal';
   
   if (value >= thresholds.critical) {
     statusColor = 'text-danger';
     strokeColor = '#ef4444';
     glowColor = 'rgba(239, 68, 68, 0.2)';
     statusText = 'CRITICAL';
+    status = 'critical';
   } else if (value >= thresholds.warning) {
     statusColor = 'text-accent';
     strokeColor = '#f59e0b';
     glowColor = 'rgba(245, 158, 11, 0.2)';
     statusText = 'WARNING';
+    status = 'warning';
   }
 
+  // Render analog gauge based on type
+  const renderAnalogGauge = () => {
+    switch (gaugeType) {
+      case 'thermometer':
+        return (
+          <ThermometerGauge
+            value={value}
+            min={min}
+            max={max}
+            unit={unit}
+            label={title}
+            status={status}
+          />
+        );
+      case 'circular':
+        return (
+          <CircularGauge
+            value={value}
+            max={max}
+            unit={unit}
+            label={title}
+            status={status}
+            size={120}
+          />
+        );
+      case 'speedometer':
+      default:
+        return (
+          <AnalogGauge
+            value={value}
+            min={min}
+            max={max}
+            label={title}
+            unit={unit}
+            status={status}
+            size="md"
+            warningThreshold={thresholds.warning}
+            criticalThreshold={thresholds.critical}
+          />
+        );
+    }
+  };
+
+  // Analog display mode
+  if (displayMode === 'analog') {
+    return (
+      <Card 
+        className={cn("p-4 h-full flex flex-col items-center justify-center group hover:border-white/20 transition-colors", className)} 
+        {...props}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className={cn("p-1.5 rounded-lg bg-white/5 text-gray-400 group-hover:text-white transition-colors")}>
+            <Icon size={16} />
+          </div>
+          <motion.div 
+            initial={false}
+            animate={{ backgroundColor: value >= thresholds.warning ? strokeColor : 'rgba(255,255,255,0.1)' }}
+            className={cn("px-2 py-0.5 rounded text-[9px] font-bold tracking-wider text-white")}
+          >
+            {statusText}
+          </motion.div>
+        </div>
+        
+        {renderAnalogGauge()}
+      </Card>
+    );
+  }
+
+  // Digital display mode (original)
   return (
     <Card 
       className={cn("p-5 h-full flex flex-col justify-between group hover:border-white/20 transition-colors", className)} 
@@ -100,4 +182,3 @@ export const SensorCard: React.FC<SensorCardProps> = ({
     </Card>
   );
 };
-

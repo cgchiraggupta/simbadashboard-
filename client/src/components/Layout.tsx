@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, BarChart2, Settings, Info, Menu, Zap, HeartPulse, LogOut, Clock } from 'lucide-react';
 import { cn } from './ui/design-system';
 import { useAuthStore } from '../store/useAuthStore';
+import { LanguageToggle, LanguageToggleCompact } from './LanguageToggle';
+import { useLanguageStore } from '../store/useLanguageStore';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -48,6 +50,7 @@ const NavItem = ({ icon: Icon, label, to, sidebarOpen }: { icon: any, label: str
 // Operator Footer Component
 const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
   const { operator, currentSession, logout } = useAuthStore();
+  const { t } = useLanguageStore();
 
   if (!operator) return null;
 
@@ -82,7 +85,7 @@ const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
             <div className="flex items-center gap-2 text-xs">
               <span className="text-green-400 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Online
+                {t('operator.online')}
               </span>
               <span className="text-gray-500">•</span>
               <span className="text-gray-400 flex items-center gap-1">
@@ -98,11 +101,11 @@ const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
       {sidebarOpen && currentSession && (
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="p-2 bg-black/20 rounded-lg border border-white/5 text-center">
-            <p className="text-gray-500">Health Alerts</p>
+            <p className="text-gray-500">{t('operator.healthAlerts')}</p>
             <p className="text-white font-bold">{currentSession.healthAlerts}</p>
           </div>
           <div className="p-2 bg-black/20 rounded-lg border border-white/5 text-center">
-            <p className="text-gray-500">Drill Alerts</p>
+            <p className="text-gray-500">{t('operator.drillAlerts')}</p>
             <p className="text-white font-bold">{currentSession.drillAlerts}</p>
           </div>
         </div>
@@ -119,7 +122,7 @@ const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
         )}
       >
         <LogOut size={16} />
-        {sidebarOpen && <span>Logout</span>}
+        {sidebarOpen && <span>{t('nav.logout')}</span>}
       </button>
     </div>
   );
@@ -127,6 +130,7 @@ const OperatorFooter = ({ sidebarOpen }: { sidebarOpen: boolean }) => {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const { t } = useLanguageStore();
 
   return (
     <div className="flex h-screen bg-background text-gray-100 font-sans overflow-hidden selection:bg-primary/30">
@@ -163,12 +167,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <NavItem icon={LayoutDashboard} label="Dashboard" to="/" sidebarOpen={sidebarOpen} />
-          <NavItem icon={HeartPulse} label="Health Monitor" to="/health" sidebarOpen={sidebarOpen} />
-          <NavItem icon={BarChart2} label="Analytics" to="/analytics" sidebarOpen={sidebarOpen} />
-          <NavItem icon={Settings} label="Settings" to="/settings" sidebarOpen={sidebarOpen} />
-          <NavItem icon={Info} label="About" to="/about" sidebarOpen={sidebarOpen} />
+          <NavItem icon={LayoutDashboard} label={t('nav.dashboard')} to="/" sidebarOpen={sidebarOpen} />
+          <NavItem icon={HeartPulse} label={t('nav.healthMonitor')} to="/health" sidebarOpen={sidebarOpen} />
+          <NavItem icon={BarChart2} label={t('nav.analytics')} to="/analytics" sidebarOpen={sidebarOpen} />
+          <NavItem icon={Settings} label={t('nav.settings')} to="/settings" sidebarOpen={sidebarOpen} />
+          <NavItem icon={Info} label={t('nav.about')} to="/about" sidebarOpen={sidebarOpen} />
         </nav>
+
+        {/* Language Toggle */}
+        <div className="px-4 pb-2">
+          {sidebarOpen ? (
+            <LanguageToggle className="w-full justify-center" />
+          ) : (
+            <LanguageToggleCompact />
+          )}
+        </div>
 
         {/* Operator Profile / Status Footer */}
         <OperatorFooter sidebarOpen={sidebarOpen} />

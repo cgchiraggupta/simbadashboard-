@@ -6,6 +6,11 @@
  * Manages operator login/logout and session tracking.
  * Tracks: who logged in, when, how long, and any alerts during session.
  * 
+ * NOW WITH SUPABASE INTEGRATION:
+ * - All sessions are stored in Supabase database
+ * - Login creates a new record
+ * - Logout updates the record with logout time and duration
+ * 
  * SAMPLE OPERATORS:
  * - arvind / password123 (Arvind Srinivaas - Operator)
  * - admin / admin123 (Admin User - Admin)
@@ -16,6 +21,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Operator, OperatorSession } from '../types';
+import { createOperatorSession, endOperatorSession } from '../lib/supabase';
 
 // Sample operators database
 const OPERATORS_DB: Record<string, { operator: Operator; password: string }> = {
@@ -52,6 +58,7 @@ interface AuthStore {
   operator: Operator | null;
   isAuthenticated: boolean;
   currentSession: OperatorSession | null;
+  supabaseSessionId: string | null; // Track Supabase session ID
   sessionHistory: OperatorSession[];
   loginError: string | null;
   login: (username: string, password: string) => boolean;
@@ -66,6 +73,7 @@ export const useAuthStore = create<AuthStore>()(
       operator: null,
       isAuthenticated: false,
       currentSession: null,
+      supabaseSessionId: null,
       sessionHistory: [],
       loginError: null,
 
@@ -83,7 +91,7 @@ export const useAuthStore = create<AuthStore>()(
           return false;
         }
 
-        // Create new session
+        // Create new local session
         const newSession: OperatorSession = {
           id: `SESSION-${Date.now()}`,
           operatorId: userRecord.operator.id,
@@ -101,6 +109,20 @@ export const useAuthStore = create<AuthStore>()(
           loginError: null,
         });
 
+        // Create session in Supabase (async, non-blocking)
+        createOperatorSession(
+          userRecord.operator.id,
+          userRecord.operator.name,
+          userRecord.operator.role
+        ).then((supabaseSession) => {
+          if (supabaseSession?.id) {
+            set({ supabaseSessionId: supabaseSession.id });
+            console.log(`📊 Supabase session created: ${supabaseSession.id}`);
+          }
+        }).catch((err) => {
+          console.warn('Failed to create Supabase session:', err);
+        });
+
         console.log(`✅ Operator logged in: ${userRecord.operator.name}`);
         return true;
       },
@@ -116,11 +138,27 @@ export const useAuthStore = create<AuthStore>()(
             status: 'completed',
           };
 
+          // End session in Supabase (async, non-blocking)
+          if (current.supabaseSessionId) {
+            endOperatorSession(
+              current.supabaseSessionId,
+              current.currentSession.healthAlerts,
+              current.currentSession.drillAlerts
+            ).then((success) => {
+              if (success) {
+                console.log(`📊 Supabase session ended successfully`);
+              }
+            }).catch((err) => {
+              console.warn('Failed to end Supabase session:', err);
+            });
+          }
+
           // Add to history
           set((state) => ({
             operator: null,
             isAuthenticated: false,
             currentSession: null,
+            supabaseSessionId: null,
             sessionHistory: [completedSession, ...state.sessionHistory].slice(0, 50), // Keep last 50 sessions
             loginError: null,
           }));
@@ -131,6 +169,7 @@ export const useAuthStore = create<AuthStore>()(
             operator: null,
             isAuthenticated: false,
             currentSession: null,
+            supabaseSessionId: null,
             loginError: null,
           });
         }
@@ -158,6 +197,7 @@ export const useAuthStore = create<AuthStore>()(
         operator: state.operator,
         isAuthenticated: state.isAuthenticated,
         currentSession: state.currentSession,
+        supabaseSessionId: state.supabaseSessionId,
         sessionHistory: state.sessionHistory,
       }),
     }
