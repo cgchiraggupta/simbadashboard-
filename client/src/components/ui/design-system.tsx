@@ -17,7 +17,8 @@ export const Card = ({ children, className, gradient = false, ...props }: CardPr
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      whileHover={{ y: -4, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)" }}
+      transition={{ duration: 0.4, hover: { duration: 0.2 } }}
       className={cn(
         "rounded-2xl border border-border backdrop-blur-xl overflow-hidden relative",
         gradient ? "bg-gradient-to-b from-surfaceHighlight/50 to-transparent" : "bg-surface/40",
