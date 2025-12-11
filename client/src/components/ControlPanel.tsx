@@ -3,6 +3,7 @@ import { Play, Square, RotateCcw, AlertOctagon, Power } from 'lucide-react';
 import { useDrillStore } from '../store/useDrillStore';
 import { Card, Button, cn } from './ui/design-system';
 import { motion } from 'framer-motion';
+import { useLanguageStore } from '../store/useLanguageStore';
 
 interface ControlPanelProps {
   className?: string;
@@ -10,6 +11,7 @@ interface ControlPanelProps {
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
   const { data, sendCommand, isConnected } = useDrillStore();
+  const { t } = useLanguageStore();
   const isRunning = data?.status === 'Running';
 
   const handleStartStop = () => {
@@ -21,17 +23,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
   };
 
   return (
-    <Card className={cn("p-6 flex flex-col justify-between", className)} gradient>
+    <Card className={cn("p-6 flex flex-col justify-between h-full border-border bg-surface", className)} gradient>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="text-lg font-bold text-text flex items-center gap-2">
             <Power size={20} className="text-primary" />
-            Manual Control
+            {t('controls.manualControl')}
           </h2>
           <div className="flex items-center gap-2">
              <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-success" : "bg-danger")} />
              <span className={cn("text-xs font-mono", isConnected ? "text-success" : "text-danger")}>
-               {isConnected ? "ONLINE" : "OFFLINE"}
+               {isConnected ? t('controls.online') : t('controls.offline')}
              </span>
           </div>
         </div>
@@ -45,26 +47,26 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
             className={cn("h-24 text-lg flex-col gap-3", isRunning && "border-accent text-accent hover:bg-accent/10 hover:text-accent")}
           >
             {isRunning ? <Square size={32} /> : <Play size={32} />}
-            {isRunning ? "STOP OPERATION" : "START OPERATION"}
+            {isRunning ? t('controls.stopOperation') : t('controls.startOperation')}
           </Button>
 
           <Button
              variant="outline"
              onClick={() => sendCommand('RESET')}
              disabled={!isConnected}
-             className="h-24 flex-col gap-3 hover:border-white/30 hover:bg-white/5"
+             className="h-24 flex-col gap-3 hover:border-textMuted hover:bg-surfaceHighlight"
           >
             <RotateCcw size={28} className="opacity-70" />
-            <span className="text-sm opacity-70">SYSTEM RESET</span>
+            <span className="text-sm opacity-70">{t('controls.systemReset')}</span>
           </Button>
         </div>
 
         {/* Sliders with custom styling */}
-        <div className="space-y-6 bg-black/20 p-4 rounded-xl border border-white/5">
+        <div className="space-y-6 bg-surfaceHighlight p-4 rounded-xl border border-border">
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <label className="text-gray-400 font-medium">Rotary Speed Target</label>
-              <span className="text-primary font-mono font-bold">{data?.sensors.rpm.toFixed(0)} <span className="text-gray-500 text-xs">RPM</span></span>
+              <label className="text-textMuted font-medium">{t('controls.rotarySpeedTarget')}</label>
+              <span className="text-primary font-mono font-bold">{data?.sensors.rpm.toFixed(0)} <span className="text-textMuted text-xs">RPM</span></span>
             </div>
             <div className="relative h-6 flex items-center">
               <input
@@ -74,10 +76,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
                 step="100"
                 defaultValue="1000"
                 onChange={(e) => sendCommand('SET_RPM', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary hover:accent-blue-400 transition-all"
+                className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary hover:accent-blue-400 transition-all"
               />
             </div>
-            <div className="flex justify-between text-[10px] text-gray-600 font-mono">
+            <div className="flex justify-between text-[10px] text-textMuted font-mono">
               <span>500</span>
               <span>1750</span>
               <span>3000</span>
@@ -86,8 +88,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
 
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <label className="text-gray-400 font-medium">Feed Pressure Force</label>
-              <span className="text-primary font-mono font-bold">{data?.sensors.pressure ? (data.sensors.pressure / 30).toFixed(1) : 0} <span className="text-gray-500 text-xs">LEVEL</span></span>
+              <label className="text-textMuted font-medium">{t('controls.feedPressureForce')}</label>
+              <span className="text-primary font-mono font-bold">{data?.sensors.pressure ? (data.sensors.pressure / 30).toFixed(1) : 0} <span className="text-textMuted text-xs">LEVEL</span></span>
             </div>
              <div className="relative h-6 flex items-center">
                 <input
@@ -97,12 +99,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
                   step="1"
                   defaultValue="5"
                   onChange={(e) => sendCommand('SET_FEED', parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary hover:accent-blue-400 transition-all"
+                  className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-primary hover:accent-blue-400 transition-all"
                 />
              </div>
-             <div className="flex justify-between text-[10px] text-gray-600 font-mono">
-              <span>LOW</span>
-              <span>HIGH</span>
+             <div className="flex justify-between text-[10px] text-textMuted font-mono">
+              <span>{t('controls.low')}</span>
+              <span>{t('controls.high')}</span>
             </div>
           </div>
         </div>
@@ -117,7 +119,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ className }) => {
       >
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30" />
         <AlertOctagon size={24} className="group-hover:animate-pulse" />
-        EMERGENCY STOP
+        {t('controls.emergencyStop')}
       </motion.button>
     </Card>
   );

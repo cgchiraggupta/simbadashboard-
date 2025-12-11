@@ -20,7 +20,22 @@
     "rpmVsVibration": "RPM VS VIBRATION",
     "currentLoad": "Current Load",
     "systemAlerts": "SYSTEM ALERTS",
-    "active": "ACTIVE"
+    "active": "ACTIVE",
+    "feedPressure": "Feed Pressure",
+    "allSystemsNominal": "All systems nominal"
+  },
+  "analytics": {
+    "title": "Performance Analytics",
+    "subtitle": "Historical operational data and efficiency metrics",
+    "totalRuntime": "Total Runtime (7 Days)",
+    "avgEfficiency": "Avg Efficiency",
+    "totalEnergy": "Total Energy",
+    "sessionHistory": "Session History",
+    "date": "Date",
+    "duration": "Duration",
+    "avgRpm": "Avg RPM",
+    "peakTemp": "Peak Temp",
+    "energy": "Energy"
   },
   "sensors": {
     "rotarySpeed": "ROTARY SPEED",
@@ -59,8 +74,8 @@
     "sessionDuration": "Session"
   },
   "healthMonitor": {
-    "title": "Operator Health Monitor",
-    "subtitle": "Drowsiness Detection System",
+    "title": "Labour Health Monitor",
+    "subtitle": "Real-time vital signs monitoring dashboard",
     "startCamera": "Start Camera",
     "stopCamera": "Stop Camera",
     "eyesDetected": "Eyes Detected",
@@ -71,8 +86,39 @@
     "alertTimer": "Alert Timer",
     "stopAlert": "STOP ALERT",
     "drowsinessAlert": "DROWSINESS ALERT",
-    "alertMessage": "Eyes closed or no face detected for more than 6 seconds!",
-    "wakeUp": "WAKE UP!"
+    "alertMessage": "Eyes not visible or eyes closed for more than 5 seconds!",
+    "wakeUp": "WAKE UP!",
+    "workerId": "Worker ID",
+    "time": "Time",
+    "alertSummary": "Alert Summary",
+    "critical": "critical",
+    "warning": "warning",
+    "immediateAttention": "Immediate attention recommended",
+    "allVitalsNormal": "All vitals within normal range",
+    "faceDetectionMonitor": "Face Detection Monitor",
+    "loadingModels": "Loading face detection models...",
+    "loadingModelsDesc": "This may take a few seconds",
+    "cameraNotActive": "Camera not active",
+    "cameraNotActiveDesc": "Click \"Start Camera\" to begin eye detection monitoring",
+    "faceDetection": "Face Detection",
+    "eyeStatus": "Eye Status",
+    "detectionActive": "Detection active",
+    "notDetected": "Not Detected",
+    "earValue": "EAR Value",
+    "threshold": "Threshold",
+    "baseline": "Baseline",
+    "timer": "Timer",
+    "alertWillTrigger": "Alert will trigger at 5.0 seconds",
+    "alertTriggered": "ALERT TRIGGERED",
+    "eyesClosedFor": "Eyes closed for",
+    "beepSoundActive": "Beep sound is active - Click to stop",
+    "connecting": "Connecting to Health Monitoring System...",
+    "footer": "Labour Health Monitoring System • MAX30102 Sensor • ESP32 Connected",
+    "alertTitle": "ALERT!",
+    "eyesClosedAlert": "Eyes Closed for 5+ Seconds",
+    "workerDrowsy": "Worker may be drowsy or unconscious",
+    "beepSoundActiveFull": "Beep Sound Active",
+    "eyesClosedAlertShort": "EYES CLOSED ALERT"
   },
   "login": {
     "title": "Operator Login",
@@ -82,6 +128,24 @@
     "demoCredentials": "Demo Credentials",
     "operator": "Operator",
     "admin": "Admin"
+  },
+  "settings": {
+    "title": "System Configuration",
+    "subtitle": "Manage thresholds, notifications, and system parameters",
+    "sensorThresholds": "Sensor Thresholds",
+    "rpmWarningLimit": "RPM Warning Limit",
+    "vibrationCriticalLimit": "Vibration Critical Limit",
+    "maxTemperature": "Max Temperature",
+    "currentOverload": "Current Overload",
+    "notifications": "Notifications",
+    "emailAlerts": "Email Alerts",
+    "smsPriorityAlerts": "SMS Priority Alerts",
+    "dataLogging": "Data Logging",
+    "logInterval": "Log Interval",
+    "logIntervalHigh": "500ms (High Resolution)",
+    "logIntervalStandard": "1s (Standard)",
+    "logIntervalLow": "5s (Low Bandwidth)",
+    "saveConfiguration": "Save Configuration"
   },
   "common": {
     "loading": "Loading...",
@@ -96,5 +160,28 @@
     "english": "English",
     "hindi": "हिंदी",
     "selectLanguage": "Select Language"
+  },
+  "about": {
+    "title": "DRILLSENSE",
+    "version": "v1.0",
+    "subtitle": "Advanced IoT monitoring solution for electric-hydraulic drilling operations. Providing real-time telemetry, predictive safety alerts, and operational analytics.",
+    "hardwareArchitecture": "Hardware Architecture",
+    "softwareStack": "Software Stack",
+    "frontendCore": "Frontend Core",
+    "dataVisualization": "Data & Visualization",
+    "backendSimulation": "Backend & Simulation",
+    "systemCapabilities": "System Capabilities",
+    "realtimeTelemetry": "Real-time Telemetry",
+    "realtimeTelemetryDesc": "500ms latency data streaming via WebSocket for instant operational feedback.",
+    "safetyInterlock": "Safety Interlock",
+    "safetyInterlockDesc": "Automated emergency stop triggers on critical vibration or current thresholds.",
+    "digitalTwin": "Digital Twin",
+    "digitalTwinDesc": "Physics-based simulation engine for realistic hardware behavior modeling.",
+    "footer": "Designed & Developed for SIH 2024 Demo",
+    "copyright": "© 2025 DrillSense IoT Solutions"
+  },
+  "alerts": {
+    "systemAlerts": "System Alerts",
+    "allSystemsNominal": "All systems nominal"
   }
 }

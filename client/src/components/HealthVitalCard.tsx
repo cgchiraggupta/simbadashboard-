@@ -30,13 +30,13 @@ export const HealthVitalCard: React.FC<HealthVitalCardProps> = ({
   const colors = statusColors[status];
 
   return (
-    <Card className={cn("p-5 h-full flex flex-col justify-between group hover:border-white/20 transition-colors", colors.border, colors.bg)}>
+    <Card className={cn("p-5 h-full flex flex-col justify-between group hover:border-primary/50 transition-colors", colors.border, colors.bg)}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2 rounded-lg bg-white/5", colors.text)}>
+          <div className={cn("p-2 rounded-lg bg-surfaceHighlight", colors.text)}>
             <Icon size={20} />
           </div>
-          <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{label}</span>
+          <span className="text-sm font-medium text-textMuted uppercase tracking-wider">{label}</span>
         </div>
         <motion.div
           initial={false}
@@ -56,10 +56,10 @@ export const HealthVitalCard: React.FC<HealthVitalCardProps> = ({
         >
           <AnimatedNumber value={value} toFixed={status === 'Critical' ? 0 : 1} />
         </motion.div>
-        <span className="text-gray-500 font-medium">{unit}</span>
+        <span className="text-textMuted font-medium">{unit}</span>
       </div>
 
-      <div className="text-xs text-gray-500 font-mono">
+      <div className="text-xs text-textMuted font-mono">
         Normal: {normalRange}
       </div>
     </Card>

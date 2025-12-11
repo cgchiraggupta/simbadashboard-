@@ -1,29 +1,40 @@
 /**
  * ============================================================================
- * HEALTH STORE - DROWSINESS DETECTION STATE MANAGEMENT
+ * HEALTH STORE - EYE TRACKING DROWSINESS DETECTION
  * ============================================================================
  * 
- * TWO ALERT SCENARIOS (both trigger 6-second timer):
+ * 🎯 MISSION: Track EYES specifically, not just face!
  * 
- * SCENARIO 1: Person NOT in frame (no face detected)
- *   → Timer starts counting
- *   → At 6 seconds: ALERT triggers
- *   → Console: "👤 NO FACE DETECTED - Timer: X.Xs"
+ * THREE SCENARIOS:
  * 
- * SCENARIO 2: Person IN frame but EYES CLOSED
- *   → Timer starts counting  
- *   → At 6 seconds: ALERT triggers
- *   → Console: "👁️ EYES CLOSED (face in frame) - Timer: X.Xs"
- * 
- * SAFE STATE: Person in frame + Eyes OPEN
+ * ✅ SAFE STATE: EYES VISIBLE + EYES OPEN
  *   → Timer resets to 0
- *   → No alert (but existing alert stays until stopped)
+ *   → No alert
+ * 
+ * 🚨 ALERT SCENARIO 1: EYES VISIBLE but CLOSED
+ *   → Face detected AND eyes have valid landmarks (6 points each)
+ *   → But EAR (Eye Aspect Ratio) ≤ threshold (eyes closed)
+ *   → Timer starts counting (real-time based)
+ *   → At 5 seconds: ALERT triggers with beep + overlay
+ *   → Console: "👁️ EYES CLOSED - Timer: X.Xs / 5.0s"
+ * 
+ * 🚨 ALERT SCENARIO 2: EYES NOT VISIBLE
+ *   → Sub-case A: No face detected at all
+ *   → Sub-case B: Face detected BUT eyes don't have valid landmarks
+ *     (person looking away, eyes occluded, etc.)
+ *   → Timer starts counting (real-time based)
+ *   → At 5 seconds: ALERT triggers with beep + overlay
+ *   → Console: "👁️ EYES NOT VISIBLE - Timer: X.Xs / 5.0s"
  * 
  * ALERT BEHAVIOR:
- * - Triggers when eyesClosedDuration >= 6 seconds
- * - Does NOT auto-stop when eyes reopen or face returns
+ * - Timer uses REAL TIME (Date.now() timestamps), not frame-based
+ * - Triggers when eyesClosedDuration >= 5 seconds
+ * - Does NOT auto-stop when eyes reopen or become visible again
  * - Only stops via stopBeep() (STOP ALERT button click)
  * - Beep sound (800Hz) plays every 500ms continuously
+ * 
+ * FUNCTION SIGNATURE:
+ * updateEyeState(eyesOpen: boolean, eyesVisible: boolean, faceDetected: boolean)
  * 
  * ============================================================================
  */
@@ -89,10 +100,13 @@ export const useHealthStore = create<{
   eyesClosedDuration: number;
   alertBeeping: boolean;
   modelsLoaded: boolean;
+  lastEyeState: 'open' | 'closed' | null;
+  lastEyeStateTime: number;
+  eyesClosedStartTime: number | null; // Track when eyes first closed (real timestamp)
   connect: () => void;
   disconnect: () => void;
   toggleCamera: () => void;
-  updateEyeState: (eyesOpen: boolean, faceDetected: boolean) => void;
+  updateEyeState: (eyesOpen: boolean, eyesVisible: boolean, faceDetected: boolean) => void;
   stopBeep: () => void;
   loadModels: () => Promise<void>;
 }>((set, get) => {
@@ -106,6 +120,9 @@ export const useHealthStore = create<{
     eyesClosedDuration: 0,
     alertBeeping: false,
     modelsLoaded: false,
+    lastEyeState: null,
+    lastEyeStateTime: 0,
+    eyesClosedStartTime: null,
 
     loadModels: async () => {
       if (get().modelsLoaded) return;
@@ -244,50 +261,46 @@ export const useHealthStore = create<{
     toggleCamera: () => {
       const active = get().cameraActive;
       if (!active) {
-        const constraints = {
-          video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user',
-          }
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-          .then(async (stream) => {
-            // Ensure models are loaded
-            await get().loadModels();
-            set({ cameraActive: true, eyesClosedDuration: 0 });
-            (get() as any).videoStream = stream;
-          })
-          .catch((error) => {
-            console.error('Camera access denied:', error);
-            alert('Unable to access camera. Please check permissions.');
-          });
+        // Just toggle state - let HealthMonitor.tsx useEffect handle the actual stream
+        // Ensure models are loaded first
+        get().loadModels().then(() => {
+          set({ cameraActive: true, eyesClosedDuration: 0, eyesClosedStartTime: null });
+        });
       } else {
-        const stream = (get() as any).videoStream;
-        if (stream) {
-          stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
-        }
-        if ((get() as any).eyeDetectionInterval) {
-          clearInterval((get() as any).eyeDetectionInterval);
-          (get() as any).eyeDetectionInterval = null;
-        }
+        // Stop camera - cleanup is handled by HealthMonitor.tsx useEffect cleanup
+        set({ cameraActive: false, eyesClosedDuration: 0, alertBeeping: false, eyesClosedStartTime: null });
+        // Stop beep if active
         if ((get() as any).beepInterval) {
           clearInterval((get() as any).beepInterval);
           (get() as any).beepInterval = null;
         }
-        set({ cameraActive: false, eyesClosedDuration: 0, alertBeeping: false });
       }
     },
 
-    updateEyeState: (eyesOpen: boolean, faceDetected: boolean) => {
+    updateEyeState: (eyesOpen: boolean, eyesVisible: boolean, faceDetected: boolean) => {
       const current = get();
+      
+      // DEBUG: Log all state updates
+      console.log(`🔄 updateEyeState called: eyesOpen=${eyesOpen}, eyesVisible=${eyesVisible}, faceDetected=${faceDetected}`);
 
-      // SCENARIO 1: Eyes are OPEN and face is detected - SAFE STATE
-      if (eyesOpen && faceDetected) {
-        // Reset duration counter when eyes open, but DON'T stop the alert
-        // Alert should only stop when user clicks "Stop Alert" button
-        set({ eyesClosedDuration: 0 });
+      // SCENARIO 1: Eyes VISIBLE and OPEN - SAFE STATE ✅
+      if (eyesVisible && eyesOpen) {
+        // CRITICAL FIX: Only reset timer if eyes have been open for at least 0.5 seconds
+        // This prevents timer from resetting due to brief flickering
+        // Use a debounce mechanism - only reset after sustained open state
+        const lastEyeState = current.lastEyeState;
+        const lastEyeStateTime = current.lastEyeStateTime || Date.now();
+        
+        if (lastEyeState !== 'open') {
+          // Eyes just opened - start debounce timer
+          set({ lastEyeState: 'open', lastEyeStateTime: Date.now() });
+        } else {
+          // Eyes have been open - check if it's been long enough to reset timer
+          const timeSinceOpen = Date.now() - lastEyeStateTime;
+          if (timeSinceOpen >= 500) { // 500ms debounce - eyes must be open for 0.5s before reset
+            set({ eyesClosedDuration: 0, eyesClosedStartTime: null });
+          }
+        }
 
         if (current.healthData) {
           const updatedHealthData = {
@@ -301,12 +314,38 @@ export const useHealthStore = create<{
           set({ healthData: updatedHealthData });
         }
       } 
-      // SCENARIO 2: Face detected but EYES CLOSED - DANGER! Start timer
-      else if (faceDetected && !eyesOpen) {
-        const newDuration = current.eyesClosedDuration + 0.1;
+      // SCENARIO 2: Eyes VISIBLE but CLOSED - DANGER! Start timer 🚨
+      else if (eyesVisible && !eyesOpen) {
+        console.log(`🚨 SCENARIO 2 TRIGGERED: Eyes visible but CLOSED!`);
+        
+        // Reset debounce state immediately when eyes close
+        set({ lastEyeState: 'closed', lastEyeStateTime: Date.now() });
+        
+        // FIX: Use REAL TIME instead of frame-based increments
+        const now = Date.now();
+        let startTime = current.eyesClosedStartTime;
+        
+        // If timer not started yet, start it now
+        if (startTime === null) {
+          startTime = now;
+          set({ eyesClosedStartTime: startTime });
+          console.log(`⚠️⚠️⚠️ EYES CLOSED DETECTED! (Eyes visible but closed) Starting 5-second timer...`);
+          console.log(`⏱️ Timer started at: ${new Date(startTime).toISOString()}`);
+        } else {
+          // Timer already running - log progress
+          const elapsed = (now - startTime) / 1000;
+          console.log(`⏱️ Timer running: ${elapsed.toFixed(1)}s / 5.0s`);
+        }
+        
+        // Calculate REAL elapsed time in seconds
+        const elapsedMs = now - startTime;
+        const newDuration = elapsedMs / 1000; // Convert to seconds
         set({ eyesClosedDuration: newDuration });
 
-        console.log(`👁️ EYES CLOSED (face in frame) - Timer: ${newDuration.toFixed(1)}s`);
+        // Log every 0.5 seconds for better visibility
+        if (Math.floor(newDuration * 2) !== Math.floor((current.eyesClosedDuration) * 2)) {
+          console.log(`👁️ EYES CLOSED - Timer: ${newDuration.toFixed(1)}s / 5.0s`);
+        }
 
         if (current.healthData) {
           const updatedHealthData = {
@@ -320,25 +359,49 @@ export const useHealthStore = create<{
           set({ healthData: updatedHealthData });
         }
 
-        // Trigger alert when eyes closed for 6+ seconds
-        if (newDuration >= 6 && !current.alertBeeping) {
+        // Trigger alert when eyes closed for 5+ seconds
+        if (newDuration >= 5 && !current.alertBeeping) {
           set({ alertBeeping: true });
           startBeep();
-          console.log('🚨 ALERT TRIGGERED: Eyes closed for 6+ seconds (face in frame)!');
+          console.log('🚨 ALERT TRIGGERED: Eyes closed for 5+ seconds!');
         }
       }
-      // SCENARIO 3: NO FACE detected - DANGER! Start timer
-      else if (!faceDetected) {
-        const newDuration = current.eyesClosedDuration + 0.1;
+      // SCENARIO 3: EYES NOT VISIBLE - DANGER! Start timer 🚨
+      // This includes: no face OR face detected but eyes not trackable
+      else if (!eyesVisible) {
+        // Reset debounce state
+        set({ lastEyeState: 'closed', lastEyeStateTime: Date.now() });
+        
+        // FIX: Use REAL TIME instead of frame-based increments
+        const now = Date.now();
+        let startTime = current.eyesClosedStartTime;
+        
+        // If timer not started yet, start it now
+        if (startTime === null) {
+          startTime = now;
+          set({ eyesClosedStartTime: startTime });
+          const reason = faceDetected 
+            ? 'Eyes not visible (face detected but eyes not trackable)' 
+            : 'Eyes not visible (no face in frame)';
+          console.log(`⚠️ ${reason} - Starting 5-second timer...`);
+        }
+        
+        // Calculate REAL elapsed time in seconds
+        const elapsedMs = now - startTime;
+        const newDuration = elapsedMs / 1000; // Convert to seconds
         set({ eyesClosedDuration: newDuration });
 
-        console.log(`👤 NO FACE DETECTED - Timer: ${newDuration.toFixed(1)}s`);
+        // Log every 0.5 seconds
+        if (Math.floor(newDuration * 2) !== Math.floor((current.eyesClosedDuration) * 2)) {
+          const reason = faceDetected ? 'eyes not trackable' : 'no face';
+          console.log(`👁️ EYES NOT VISIBLE (${reason}) - Timer: ${newDuration.toFixed(1)}s / 5.0s`);
+        }
 
         if (current.healthData) {
           const updatedHealthData = {
             ...current.healthData,
             faceDetection: {
-              faceDetected: false,
+              faceDetected: faceDetected, // Keep faceDetected state
               eyesOpen: false,
               cameraActive: current.cameraActive,
             }
@@ -346,11 +409,12 @@ export const useHealthStore = create<{
           set({ healthData: updatedHealthData });
         }
 
-        // Trigger alert when no face for 6+ seconds
-        if (newDuration >= 6 && !current.alertBeeping) {
+        // Trigger alert when eyes not visible for 5+ seconds
+        if (newDuration >= 5 && !current.alertBeeping) {
           set({ alertBeeping: true });
           startBeep();
-          console.log('🚨 ALERT TRIGGERED: No face detected for 6+ seconds!');
+          const reason = faceDetected ? 'eyes not visible' : 'no face detected';
+          console.log(`🚨 ALERT TRIGGERED: ${reason} for 5+ seconds!`);
         }
       }
     },

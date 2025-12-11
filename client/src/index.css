@@ -1,37 +1,82 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+@theme {
+  /* Define custom colors that map to CSS variables */
+  --color-background: rgb(var(--background));
+  --color-surface: rgb(var(--surface));
+  --color-surface-highlight: rgb(var(--surface-highlight));
+  --color-border: rgb(var(--border));
+  --color-text: rgb(var(--text));
+  --color-text-muted: rgb(var(--text-muted));
+  
+  --color-primary: rgb(var(--primary));
+  --color-accent: rgb(var(--accent));
+  --color-success: rgb(var(--success));
+  --color-danger: rgb(var(--danger));
+}
+
+:root {
+  /* Light Mode Variables (Default) */
+  --background: 249 250 251; /* Gray 50 */
+  --surface: 255 255 255;    /* White */
+  --surface-highlight: 243 244 246; /* Gray 100 */
+  --border: 229 231 235;     /* Gray 200 */
+  --text: 17 24 39;          /* Gray 900 */
+  --text-muted: 107 114 128; /* Gray 500 */
+
+  --primary: 59 130 246;     /* Blue 500 */
+  --accent: 245 158 11;      /* Amber 500 */
+  --success: 16 185 129;     /* Emerald 500 */
+  --danger: 239 68 68;       /* Red 500 */
+}
+
+.dark {
+  /* Dark Mode Variables */
+  --background: 9 9 11;      /* Zinc 950 */
+  --surface: 24 24 27;       /* Zinc 900 */
+  --surface-highlight: 39 39 42; /* Zinc 800 */
+  --border: 39 39 42;        /* Zinc 800 */
+  --text: 228 228 231;       /* Zinc 200 */
+  --text-muted: 161 161 170; /* Zinc 400 */
+
+  /* Keep brand colors vibrant but readable in dark mode */
+  --primary: 59 130 246;
+  --accent: 245 158 11;
+  --success: 16 185 129;
+  --danger: 239 68 68;
+}
+
 @layer base {
   body {
-    @apply bg-background text-gray-200 antialiased selection:bg-primary selection:text-white;
+    @apply bg-background text-text antialiased selection:bg-primary/30 selection:text-text;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-surface/40 backdrop-blur-md border border-white/10;
+    @apply bg-surface/40 backdrop-blur-md border border-white/10 dark:border-white/10 border-black/5;
   }
   
   .glass-card {
-    @apply bg-gradient-to-b from-white/5 to-transparent backdrop-blur-xl border border-white/10 shadow-2xl;
+    @apply bg-surface/60 backdrop-blur-xl border border-border shadow-xl dark:shadow-2xl dark:bg-gradient-to-b dark:from-white/5 dark:to-transparent;
   }
 
   .text-glow {
     text-shadow: 0 0 10px currentColor;
   }
 
-  /* Custom scrollbar for futuristic feel */
+  /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
+    background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    @apply bg-gray-300 dark:bg-white/10 rounded-full;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    @apply bg-gray-400 dark:bg-white/20;
   }
 }

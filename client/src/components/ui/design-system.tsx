@@ -19,8 +19,8 @@ export const Card = ({ children, className, gradient = false, ...props }: CardPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className={cn(
-        "rounded-2xl border border-white/10 backdrop-blur-xl overflow-hidden relative",
-        gradient ? "bg-gradient-to-b from-white/5 to-transparent" : "bg-surface/40",
+        "rounded-2xl border border-border backdrop-blur-xl overflow-hidden relative",
+        gradient ? "bg-gradient-to-b from-surfaceHighlight/50 to-transparent" : "bg-surface/40",
         className
       )}
       {...props}
@@ -37,8 +37,8 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
     const variants = {
       primary: "bg-primary hover:bg-blue-600 text-white shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]",
       danger: "bg-danger hover:bg-red-600 text-white shadow-[0_0_20px_-5px_rgba(239,68,68,0.5)]",
-      outline: "border border-white/10 hover:bg-white/5 text-gray-300",
-      ghost: "hover:bg-white/5 text-gray-400 hover:text-white"
+      outline: "border border-border hover:bg-surfaceHighlight text-text",
+      ghost: "hover:bg-surfaceHighlight text-textMuted hover:text-text"
     };
 
     return (

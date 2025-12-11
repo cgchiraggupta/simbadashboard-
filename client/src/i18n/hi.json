@@ -20,7 +20,21 @@
     "rpmVsVibration": "आरपीएम बनाम कंपन",
     "currentLoad": "वर्तमान भार",
     "systemAlerts": "सिस्टम अलर्ट",
-    "active": "सक्रिय"
+    "active": "सक्रिय",
+    "feedPressure": "फीड दबाव"
+  },
+  "analytics": {
+    "title": "प्रदर्शन विश्लेषण",
+    "subtitle": "ऐतिहासिक परिचालन डेटा और दक्षता मेट्रिक्स",
+    "totalRuntime": "कुल रनटाइम (7 दिन)",
+    "avgEfficiency": "औसत दक्षता",
+    "totalEnergy": "कुल ऊर्जा",
+    "sessionHistory": "सत्र इतिहास",
+    "date": "दिनांक",
+    "duration": "अवधि",
+    "avgRpm": "औसत आरपीएम",
+    "peakTemp": "अधिकतम तापमान",
+    "energy": "ऊर्जा"
   },
   "sensors": {
     "rotarySpeed": "घूर्णन गति",
@@ -59,8 +73,8 @@
     "sessionDuration": "सत्र"
   },
   "healthMonitor": {
-    "title": "ऑपरेटर स्वास्थ्य मॉनिटर",
-    "subtitle": "नींद का पता लगाने की प्रणाली",
+    "title": "श्रमिक स्वास्थ्य मॉनिटर",
+    "subtitle": "वास्तविक समय महत्वपूर्ण संकेत निगरानी डैशबोर्ड",
     "startCamera": "कैमरा शुरू करें",
     "stopCamera": "कैमरा बंद करें",
     "eyesDetected": "आंखें पहचानी गईं",
@@ -71,8 +85,39 @@
     "alertTimer": "अलर्ट टाइमर",
     "stopAlert": "अलर्ट बंद करें",
     "drowsinessAlert": "नींद की चेतावनी",
-    "alertMessage": "6 सेकंड से अधिक समय से आंखें बंद या चेहरा नहीं मिला!",
-    "wakeUp": "जागो!"
+    "alertMessage": "5 सेकंड से अधिक समय से आंखें दिखाई नहीं दे रहीं या बंद हैं!",
+    "wakeUp": "जागो!",
+    "workerId": "श्रमिक आईडी",
+    "time": "समय",
+    "alertSummary": "अलर्ट सारांश",
+    "critical": "गंभीर",
+    "warning": "चेतावनी",
+    "immediateAttention": "तत्काल ध्यान की सिफारिश",
+    "allVitalsNormal": "सभी महत्वपूर्ण संकेत सामान्य सीमा में",
+    "faceDetectionMonitor": "चेहरा पहचान मॉनिटर",
+    "loadingModels": "चेहरा पहचान मॉडल लोड हो रहे हैं...",
+    "loadingModelsDesc": "इसमें कुछ सेकंड लग सकते हैं",
+    "cameraNotActive": "कैमरा सक्रिय नहीं",
+    "cameraNotActiveDesc": "आंख पहचान निगरानी शुरू करने के लिए \"कैमरा शुरू करें\" पर क्लिक करें",
+    "faceDetection": "चेहरा पहचान",
+    "eyeStatus": "आंख की स्थिति",
+    "detectionActive": "पहचान सक्रिय",
+    "notDetected": "पहचाना नहीं गया",
+    "earValue": "ईएआर मान",
+    "threshold": "थ्रेशोल्ड",
+    "baseline": "बेसलाइन",
+    "timer": "टाइमर",
+    "alertWillTrigger": "5.0 सेकंड पर अलर्ट ट्रिगर होगा",
+    "alertTriggered": "अलर्ट ट्रिगर",
+    "eyesClosedFor": "आंखें बंद",
+    "beepSoundActive": "बीप ध्वनि सक्रिय है - रोकने के लिए क्लिक करें",
+    "connecting": "स्वास्थ्य निगरानी प्रणाली से जुड़ रहा है...",
+    "footer": "श्रमिक स्वास्थ्य निगरानी प्रणाली • MAX30102 सेंसर • ESP32 कनेक्टेड",
+    "alertTitle": "चेतावनी!",
+    "eyesClosedAlert": "5+ सेकंड से आंखें बंद",
+    "workerDrowsy": "श्रमिक नींद में या बेहोश हो सकता है",
+    "beepSoundActiveFull": "बीप ध्वनि सक्रिय",
+    "eyesClosedAlertShort": "आंखें बंद चेतावनी"
   },
   "login": {
     "title": "ऑपरेटर लॉगिन",
@@ -82,6 +127,24 @@
     "demoCredentials": "डेमो क्रेडेंशियल",
     "operator": "ऑपरेटर",
     "admin": "एडमिन"
+  },
+  "settings": {
+    "title": "सिस्टम कॉन्फ़िगरेशन",
+    "subtitle": "थ्रेशोल्ड, सूचनाएं और सिस्टम पैरामीटर प्रबंधित करें",
+    "sensorThresholds": "सेंसर थ्रेशोल्ड",
+    "rpmWarningLimit": "आरपीएम चेतावनी सीमा",
+    "vibrationCriticalLimit": "कंपन गंभीर सीमा",
+    "maxTemperature": "अधिकतम तापमान",
+    "currentOverload": "वर्तमान अधिभार",
+    "notifications": "सूचनाएं",
+    "emailAlerts": "ईमेल अलर्ट",
+    "smsPriorityAlerts": "एसएमएस प्राथमिकता अलर्ट",
+    "dataLogging": "डेटा लॉगिंग",
+    "logInterval": "लॉग अंतराल",
+    "logIntervalHigh": "500ms (उच्च रिज़ॉल्यूशन)",
+    "logIntervalStandard": "1s (मानक)",
+    "logIntervalLow": "5s (कम बैंडविड्थ)",
+    "saveConfiguration": "कॉन्फ़िगरेशन सहेजें"
   },
   "common": {
     "loading": "लोड हो रहा है...",
@@ -96,5 +159,28 @@
     "english": "English",
     "hindi": "हिंदी",
     "selectLanguage": "भाषा चुनें"
+  },
+  "about": {
+    "title": "ड्रिलसेंस",
+    "version": "v1.0",
+    "subtitle": "इलेक्ट्रिक-हाइड्रोलिक ड्रिलिंग संचालन के लिए उन्नत IoT निगरानी समाधान। वास्तविक समय टेलीमेट्री, भविष्य कहनेवाला सुरक्षा अलर्ट और परिचालन विश्लेषण प्रदान करता है।",
+    "hardwareArchitecture": "हार्डवेयर आर्किटेक्चर",
+    "softwareStack": "सॉफ्टवेयर स्टैक",
+    "frontendCore": "फ्रंटएंड कोर",
+    "dataVisualization": "डेटा और विज़ुअलाइज़ेशन",
+    "backendSimulation": "बैकएंड और सिमुलेशन",
+    "systemCapabilities": "सिस्टम क्षमताएं",
+    "realtimeTelemetry": "वास्तविक समय टेलीमेट्री",
+    "realtimeTelemetryDesc": "तत्काल परिचालन प्रतिक्रिया के लिए WebSocket के माध्यम से 500ms विलंबता डेटा स्ट्रीमिंग।",
+    "safetyInterlock": "सुरक्षा इंटरलॉक",
+    "safetyInterlockDesc": "गंभीर कंपन या वर्तमान थ्रेशोल्ड पर स्वचालित आपातकालीन रोक ट्रिगर।",
+    "digitalTwin": "डिजिटल ट्विन",
+    "digitalTwinDesc": "यथार्थवादी हार्डवेयर व्यवहार मॉडलिंग के लिए भौतिकी-आधारित सिमुलेशन इंजन।",
+    "footer": "SIH 2024 डेमो के लिए डिज़ाइन और विकसित",
+    "copyright": "© 2025 ड्रिलसेंस IoT समाधान"
+  },
+  "alerts": {
+    "systemAlerts": "सिस्टम अलर्ट",
+    "allSystemsNominal": "सभी सिस्टम सामान्य"
   }
 }

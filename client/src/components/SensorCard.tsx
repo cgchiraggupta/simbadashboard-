@@ -11,6 +11,7 @@ type GaugeType = 'speedometer' | 'circular' | 'thermometer';
 interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   title: string;
   value: number;
+  previousValue?: number;
   unit: string;
   icon: LucideIcon;
   data: { value: number }[];
@@ -19,11 +20,13 @@ interface SensorCardProps extends Omit<HTMLMotionProps<"div">, "title" | "id"> {
   thresholds: { warning: number; critical: number };
   displayMode?: DisplayMode;
   gaugeType?: GaugeType;
+  trend?: 'increasing' | 'decreasing' | 'stable';
 }
 
 export const SensorCard: React.FC<SensorCardProps> = ({
   title,
   value,
+  previousValue,
   unit,
   icon: Icon,
   data,
@@ -32,6 +35,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   thresholds,
   displayMode = 'analog', // Default to analog
   gaugeType = 'speedometer',
+  trend = 'stable',
   className,
   ...props
 }) => {
@@ -78,6 +82,8 @@ export const SensorCard: React.FC<SensorCardProps> = ({
             label={title}
             status={status}
             size={120}
+            trend={trend}
+            previousValue={previousValue}
           />
         );
       case 'speedometer':
@@ -89,10 +95,9 @@ export const SensorCard: React.FC<SensorCardProps> = ({
             max={max}
             label={title}
             unit={unit}
-            status={status}
             size="md"
-            warningThreshold={thresholds.warning}
-            criticalThreshold={thresholds.critical}
+            trend={trend}
+            previousValue={previousValue}
           />
         );
     }
@@ -102,23 +107,37 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   if (displayMode === 'analog') {
     return (
       <Card 
-        className={cn("p-4 h-full flex flex-col items-center justify-center group hover:border-white/20 transition-colors", className)} 
+        className={cn(
+          "p-4 h-full flex flex-col items-center justify-center transition-all duration-300",
+          "hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+          "bg-surface border-border",
+          className
+        )}
         {...props}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <div className={cn("p-1.5 rounded-lg bg-white/5 text-gray-400 group-hover:text-white transition-colors")}>
-            <Icon size={16} />
+        <div className="flex items-center gap-2 mb-2 w-full justify-between px-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className={cn("p-1.5 rounded-lg bg-surfaceHighlight text-textMuted group-hover:text-primary transition-colors flex-shrink-0")}>
+              <Icon size={16} />
+            </div>
+            <span className="text-xs font-bold text-textMuted uppercase tracking-wider truncate">{title}</span>
           </div>
           <motion.div 
             initial={false}
-            animate={{ backgroundColor: value >= thresholds.warning ? strokeColor : 'rgba(255,255,255,0.1)' }}
-            className={cn("px-2 py-0.5 rounded text-[9px] font-bold tracking-wider text-white")}
+            animate={{ backgroundColor: value >= thresholds.warning ? strokeColor : 'rgba(128,128,128,0.1)' }}
+            className={cn("px-2 py-0.5 rounded text-[9px] font-bold tracking-wider flex-shrink-0", 
+              value >= thresholds.warning ? "text-white" : "text-textMuted"
+            )}
           >
             {statusText}
           </motion.div>
         </div>
         
-        {renderAnalogGauge()}
+        <div className="flex-1 flex items-center justify-center w-full min-h-0">
+          <div className="w-full flex justify-center">
+            {renderAnalogGauge()}
+          </div>
+        </div>
       </Card>
     );
   }
@@ -126,20 +145,27 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   // Digital display mode (original)
   return (
     <Card 
-      className={cn("p-5 h-full flex flex-col justify-between group hover:border-white/20 transition-colors", className)} 
+      className={cn(
+        "p-5 h-full flex flex-col justify-between transition-all duration-300",
+        "hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+        "bg-surface border-border",
+        className
+      )}
       {...props}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2 rounded-lg bg-white/5 text-gray-400 group-hover:text-white transition-colors")}>
+          <div className={cn("p-2 rounded-lg bg-surfaceHighlight text-textMuted group-hover:text-primary transition-colors")}>
             <Icon size={20} />
           </div>
-          <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{title}</span>
+          <span className="text-sm font-medium text-textMuted uppercase tracking-wider">{title}</span>
         </div>
         <motion.div 
           initial={false}
-          animate={{ backgroundColor: value >= thresholds.warning ? strokeColor : 'rgba(255,255,255,0.1)' }}
-          className={cn("px-2 py-1 rounded text-[10px] font-bold tracking-wider text-white")}
+          animate={{ backgroundColor: value >= thresholds.warning ? strokeColor : 'rgba(128,128,128,0.1)' }}
+          className={cn("px-2 py-1 rounded text-[10px] font-bold tracking-wider",
+            value >= thresholds.warning ? "text-white" : "text-textMuted"
+          )}
         >
           {statusText}
         </motion.div>
@@ -148,14 +174,14 @@ export const SensorCard: React.FC<SensorCardProps> = ({
       <div className="flex items-baseline gap-2 mb-4">
         <motion.span 
           key={Math.floor(value)} // Animate on integer change
-          initial={{ scale: 1.1, color: '#fff' }}
-          animate={{ scale: 1, color: value >= thresholds.warning ? strokeColor : '#fff' }}
-          className={cn("text-4xl font-mono font-bold tracking-tight")}
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1, color: value >= thresholds.warning ? strokeColor : 'var(--color-text)' }}
+          className={cn("text-4xl font-mono font-bold tracking-tight text-text")}
           style={{ textShadow: value >= thresholds.warning ? `0 0 20px ${strokeColor}` : 'none' }}
         >
           {value.toFixed(1)}
         </motion.span>
-        <span className="text-gray-500 font-medium">{unit}</span>
+        <span className="text-textMuted font-medium">{unit}</span>
       </div>
 
       <div className="h-16 relative -mx-2">

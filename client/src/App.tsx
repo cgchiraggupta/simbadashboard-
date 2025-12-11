@@ -16,12 +16,10 @@ function App() {
   const { connect: connectHealth, disconnect: disconnectHealth } = useHealthStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  console.log('App render - isAuthenticated:', isAuthenticated);
-
   useEffect(() => {
     if (isAuthenticated) {
-      connect();
-      connectHealth();
+    connect();
+    connectHealth();
     }
     return () => {
       disconnect();

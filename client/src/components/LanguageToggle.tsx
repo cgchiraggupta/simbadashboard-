@@ -21,7 +21,8 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
       onClick={toggleLanguage}
       className={cn(
         "flex items-center gap-2 px-3 py-2 rounded-lg transition-all",
-        "bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20",
+        "bg-surfaceHighlight hover:bg-surfaceHighlight/80 border border-border hover:border-primary/30",
+        "text-text",
         className
       )}
       whileHover={{ scale: 1.02 }}
@@ -33,13 +34,13 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
       <div className="flex items-center gap-1 text-sm font-medium">
         <span className={cn(
           "transition-all",
-          !isHindi ? "text-primary" : "text-gray-500"
+          !isHindi ? "text-primary font-semibold" : "text-textMuted"
         )}>
           EN
         </span>
         
-        {/* Toggle Switch */}
-        <div className="relative w-10 h-5 bg-gray-700 rounded-full mx-1">
+        {/* Toggle Switch - Theme aware */}
+        <div className="relative w-10 h-5 bg-surface rounded-full mx-1 border border-border">
           <motion.div
             className="absolute top-0.5 w-4 h-4 bg-primary rounded-full shadow-lg"
             animate={{ left: isHindi ? '22px' : '2px' }}
@@ -49,14 +50,14 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
         
         <span className={cn(
           "transition-all",
-          isHindi ? "text-primary" : "text-gray-500"
+          isHindi ? "text-primary font-semibold" : "text-textMuted"
         )}>
           हिं
         </span>
       </div>
 
       {showLabel && (
-        <span className="text-xs text-gray-400 hidden sm:inline">
+        <span className="text-xs text-textMuted hidden sm:inline">
           {isHindi ? 'हिंदी' : 'English'}
         </span>
       )}
@@ -74,12 +75,13 @@ export const LanguageToggleCompact: React.FC<{ className?: string }> = ({ classN
       onClick={toggleLanguage}
       className={cn(
         "flex items-center justify-center gap-2 w-full px-3 py-2 rounded-lg transition-all",
-        "bg-white/5 hover:bg-white/10 border border-white/10",
+        "bg-surfaceHighlight hover:bg-surfaceHighlight/80 border border-border hover:border-primary/30",
+        "text-text",
         className
       )}
     >
       <Globe size={16} className="text-primary" />
-      <span className="text-sm font-medium">
+      <span className="text-sm font-medium text-text">
         {isHindi ? 'EN' : 'हिं'}
       </span>
     </button>

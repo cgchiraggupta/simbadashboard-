@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -11,26 +12,28 @@ export default {
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
-        background: '#09090b', // Zinc 950
-        surface: '#18181b',    // Zinc 900
-        surfaceHighlight: '#27272a', // Zinc 800
-        border: '#27272a',
+        background: 'rgb(var(--background) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        surfaceHighlight: 'rgb(var(--surface-highlight) / <alpha-value>)',
+        border: 'rgb(var(--border) / <alpha-value>)',
+        text: 'rgb(var(--text) / <alpha-value>)',
+        textMuted: 'rgb(var(--text-muted) / <alpha-value>)',
         
         primary: {
-          DEFAULT: '#3b82f6', // Blue 500
-          glow: 'rgba(59, 130, 246, 0.5)'
+          DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+          glow: 'rgba(var(--primary), 0.5)'
         },
         accent: {
-          DEFAULT: '#f59e0b', // Amber 500
-          glow: 'rgba(245, 158, 11, 0.5)'
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+          glow: 'rgba(var(--accent), 0.5)'
         },
         success: {
-          DEFAULT: '#10b981', // Emerald 500
-          glow: 'rgba(16, 185, 129, 0.5)'
+          DEFAULT: 'rgb(var(--success) / <alpha-value>)',
+          glow: 'rgba(var(--success), 0.5)'
         },
         danger: {
-          DEFAULT: '#ef4444', // Red 500
-          glow: 'rgba(239, 68, 68, 0.5)'
+          DEFAULT: 'rgb(var(--danger) / <alpha-value>)',
+          glow: 'rgba(var(--danger), 0.5)'
         }
       },
       animation: {
@@ -40,4 +43,3 @@ export default {
   },
   plugins: [],
 }
-

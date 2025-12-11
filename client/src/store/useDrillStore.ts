@@ -65,10 +65,10 @@ export const useDrillStore = create<DrillState>((set, get) => {
   return {
     data: initialData,
     history: [initialData],
-    isConnected: false,
+  isConnected: false,
 
-    connect: () => {
-      if (get().isConnected) return;
+  connect: () => {
+    if (get().isConnected) return;
 
       // Start mock data updates immediately and set connected
       if (!(get() as any).mockInterval) {
@@ -90,64 +90,64 @@ export const useDrillStore = create<DrillState>((set, get) => {
 
       // Also try real WebSocket connection
       try {
-        const ws = new WebSocket('ws://localhost:3001');
+    const ws = new WebSocket('ws://localhost:3001');
 
-        ws.onopen = () => {
-          console.log('Connected to Drill System');
-          set({ isConnected: true });
-        };
+    ws.onopen = () => {
+      console.log('Connected to Drill System');
+      set({ isConnected: true });
+    };
 
-        ws.onclose = () => {
-          console.log('Disconnected from Drill System');
+    ws.onclose = () => {
+      console.log('Disconnected from Drill System');
           // Don't set disconnected if mock data is running
           if (!(get() as any).mockInterval) {
-            set({ isConnected: false });
+      set({ isConnected: false });
           }
-        };
+    };
 
-        ws.onmessage = (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            if (message.type === 'UPDATE') {
-              const newData = message.data as DrillData;
-              set((state) => {
-                const newHistory = [...state.history, newData].slice(-MAX_HISTORY);
-                return {
-                  data: newData,
-                  history: newHistory
-                };
-              });
-            }
-          } catch (e) {
-            console.error('Failed to parse message', e);
-          }
-        };
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'UPDATE') {
+          const newData = message.data as DrillData;
+          set((state) => {
+            const newHistory = [...state.history, newData].slice(-MAX_HISTORY);
+            return {
+              data: newData,
+              history: newHistory
+            };
+          });
+        }
+      } catch (e) {
+        console.error('Failed to parse message', e);
+      }
+    };
 
         ws.onerror = () => {
           console.log('WebSocket error, using mock data');
         };
 
-        (get() as any).ws = ws;
+    (get() as any).ws = ws;
       } catch (error) {
         console.log('WebSocket connection failed, using mock data');
       }
-    },
+  },
 
-    disconnect: () => {
-      const ws = (get() as any).ws;
-      if (ws) {
-        ws.close();
-      }
+  disconnect: () => {
+    const ws = (get() as any).ws;
+    if (ws) {
+      ws.close();
+    }
       const mockInterval = (get() as any).mockInterval;
       if (mockInterval) {
         clearInterval(mockInterval);
         (get() as any).mockInterval = null;
       }
-      set({ isConnected: false });
-    },
+    set({ isConnected: false });
+  },
 
-    sendCommand: (command: string, value?: number) => {
-      const ws = (get() as any).ws;
+  sendCommand: (command: string, value?: number) => {
+    const ws = (get() as any).ws;
       
       // Handle commands locally for mock mode
       console.log(`🎮 Command: ${command}`, value !== undefined ? `Value: ${value}` : '');
@@ -189,13 +189,13 @@ export const useDrillStore = create<DrillState>((set, get) => {
       }));
       
       // Also send to WebSocket if connected
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'CONTROL',
-          payload: { command, value }
-        }));
-      }
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'CONTROL',
+        payload: { command, value }
+      }));
     }
+  }
   };
 });
 

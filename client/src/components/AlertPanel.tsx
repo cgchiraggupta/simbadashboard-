@@ -3,18 +3,21 @@ import { AlertTriangle, AlertOctagon, Info, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Alert } from '../types';
 import { Card, cn } from './ui/design-system';
+import { useLanguageStore } from '../store/useLanguageStore';
 
 interface AlertPanelProps {
   alerts: Alert[];
 }
 
 export const AlertPanel: React.FC<AlertPanelProps> = ({ alerts }) => {
+  const { t } = useLanguageStore();
+  
   return (
-    <Card className="flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
-        <h2 className="text-sm font-bold text-gray-200 flex items-center gap-2 uppercase tracking-wider">
+    <Card className="flex flex-col h-full overflow-hidden bg-surface border-border">
+      <div className="p-4 border-b border-border flex justify-between items-center bg-surfaceHighlight">
+        <h2 className="text-sm font-bold text-text flex items-center gap-2 uppercase tracking-wider">
           <AlertTriangle className="text-accent" size={16} />
-          System Alerts
+          {t('alerts.systemAlerts')}
         </h2>
         <span className={cn(
           "text-xs px-2 py-0.5 rounded-full font-bold border",
@@ -32,10 +35,10 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alerts }) => {
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }}
-              className="h-full flex flex-col items-center justify-center text-gray-500 py-8"
+              className="h-full flex flex-col items-center justify-center text-textMuted py-8"
             >
-              <CheckCircle2 size={48} className="mb-3 opacity-20" />
-              <p className="text-sm">All systems nominal</p>
+              <CheckCircle2 size={48} className="mb-3 opacity-20 text-success" />
+              <p className="text-sm">{t('alerts.allSystemsNominal')}</p>
             </motion.div>
           ) : (
             alerts.map((alert) => (
